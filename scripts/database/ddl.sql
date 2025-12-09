@@ -32,8 +32,8 @@ CREATE TABLE IF NOT EXISTS sales.stores (
     store_name          VARCHAR(100),
     number_of_employees INTEGER,
     zip_code            VARCHAR(20),
-    latitude            NUMERIC(10, 6),
-    longitude           NUMERIC(10, 6)
+    latitude            NUMERIC(10, 4),
+    longitude           NUMERIC(10, 4)
 );
 
 COMMENT ON TABLE sales.stores IS 'This table provides detailed information about store locations for a multinational company. Each record represents a specific store, with details about its geographical location, number of employees, and more';
@@ -110,7 +110,7 @@ CREATE TABLE IF NOT EXISTS sales.transactions (
     employee_id       INT,
     currency          CHAR(3),
     currency_symbol   CHAR(1),
-    sku               VARCHAR(200),
+    sku               VARCHAR(50),
     transaction_type  VARCHAR(50),
     payment_method    VARCHAR(50),
     invoice_total     NUMERIC(14,2)
