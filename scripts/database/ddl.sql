@@ -1,15 +1,16 @@
+-- DDL script to create database schema and tables for a multinational retail company
 CREATE SCHEMA IF NOT EXISTS sales;
 
 CREATE TABLE IF NOT EXISTS sales.customers (
     customer_id     INT,
-    name            VARCHAR(100),
-    email           VARCHAR(100),
-    telephone       VARCHAR(100),
-    city            VARCHAR(100),
-    country         VARCHAR(100),
+    name            VARCHAR(255),
+    email           VARCHAR(255),
+    telephone       VARCHAR(255),
+    city            VARCHAR(255),
+    country         VARCHAR(255),
     gender          CHAR(1),
     date_of_birth   DATE,
-    job_title       VARCHAR(100)
+    job_title       VARCHAR(255)
 );
 
 COMMENT ON TABLE sales.customers IS 'This table contains detailed information about customers, focusing on their personal attributes, contact details, and geographical location';
@@ -27,9 +28,9 @@ COMMENT ON COLUMN sales.customers.job_title     IS 'Occupation (optional field, 
 
 CREATE TABLE IF NOT EXISTS sales.stores (
     store_id            INT,
-    country             VARCHAR(100),
-    city                VARCHAR(100),
-    store_name          VARCHAR(100),
+    country             VARCHAR(255),
+    city                VARCHAR(255),
+    store_name          VARCHAR(255),
     number_of_employees INTEGER,
     zip_code            VARCHAR(20),
     latitude            NUMERIC(10, 4),
@@ -51,8 +52,8 @@ COMMENT ON COLUMN sales.stores.longitude            IS 'Geographical longitude o
 CREATE TABLE IF NOT EXISTS sales.employees (
     employee_id   INT,
     store_id      INT,
-    name          VARCHAR(100),
-    position      VARCHAR(100)
+    name          VARCHAR(255),
+    position      VARCHAR(255)
 );
 
 COMMENT ON TABLE sales.employees IS 'This table contains information about employees working at different store locations, detailing their roles and unique identifiers';
@@ -65,16 +66,16 @@ COMMENT ON COLUMN sales.employees.position    IS 'Role within store hierarchy (M
 
 CREATE TABLE IF NOT EXISTS sales.products (
     product_id         INT,
-    category           VARCHAR(100),
-    sub_category       VARCHAR(100),
+    category           VARCHAR(255),
+    sub_category       VARCHAR(255),
     description_pt     TEXT,
     description_de     TEXT,
     description_fr     TEXT,
     description_es     TEXT,
     description_en     TEXT,
     description_zh     TEXT,
-    color              VARCHAR(100),
-    sizes              VARCHAR(100),
+    color              VARCHAR(255),
+    sizes              VARCHAR(255),
     production_cost    NUMERIC(10, 2)
 );
 
@@ -95,12 +96,12 @@ COMMENT ON COLUMN sales.products.production_cost  IS 'Cost incurred to produce t
 
 
 CREATE TABLE IF NOT EXISTS sales.transactions (
-    invoice_id        VARCHAR(100),
+    invoice_id        VARCHAR(255),
     line              INTEGER,
     customer_id       INT,
     product_id        INT,
-    size              VARCHAR(100),
-    color             VARCHAR(100),
+    size              VARCHAR(255),
+    color             VARCHAR(255),
     unit_price        NUMERIC(12, 2),
     quantity          INTEGER,
     transaction_date  TIMESTAMP,
@@ -111,7 +112,7 @@ CREATE TABLE IF NOT EXISTS sales.transactions (
     currency          CHAR(3),
     currency_symbol   CHAR(1),
     sku               VARCHAR(50),
-    transaction_type  VARCHAR(50),
+    transaction_type  VARCHAR(20),
     payment_method    VARCHAR(50),
     invoice_total     NUMERIC(14,2)
 );
@@ -137,3 +138,13 @@ COMMENT ON COLUMN sales.transactions.sku IS 'Stock Keeping Unit (SKU), a unique 
 COMMENT ON COLUMN sales.transactions.transaction_type IS 'Specifies whether the transaction is a Sale or Return';
 COMMENT ON COLUMN sales.transactions.payment_method IS 'Method used to complete the transaction (e.g., Credit Card, Cash)';
 COMMENT ON COLUMN sales.transactions.invoice_total IS 'Refers to the total value of the transaction (Invoice ID). It is the sum of all Line Total values for the same Invoice ID. This value is repeated across all line items within the same Invoice ID';
+
+
+-- create replication user and grant permissions for airbyte
+CREATE USER IF NOT EXISTS airbyte WITH PASSWORD 'airbyte';
+ALTER USER airbyte REPLICATION;
+
+GRANT USAGE ON SCHEMA sales TO airbyte;
+GRANT SELECT ON ALL TABLES IN SCHEMA sales TO airbyte;
+
+ALTER DEFAULT PRIVILEGES IN SCHEMA sales GRANT SELECT ON TABLES TO airbyte;
