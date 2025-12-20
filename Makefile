@@ -1,3 +1,5 @@
-# init
+# todo
 
-# delete
+# init project
+
+# delete project
