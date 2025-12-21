@@ -1,0 +1,405 @@
+version: 2
+
+models:
+  - name: mdw_cur_ft_sales
+    description: "Curated fact table containing fully denormalized sales transactions with customer, product, and salesperson dimensions. Partitioned by sales date."
+    columns:
+      - name: sales_id
+        description: "Primary key. Unique identifier for each sale transaction."
+        tests:
+          - unique
+          - not_null
+      - name: transaction_number
+        description: "Business transaction identifier. May group multiple line items."
+        tests:
+          - not_null
+      - name: customer_id
+        description: "Foreign key to customer dimension."
+        tests:
+          - not_null
+      - name: customer_name
+        description: "Full name of the customer."
+      - name: customer_city
+        description: "City where the customer resides."
+      - name: customer_country
+        description: "Country where the customer resides."
+      - name: customer_country_code
+        description: "ISO 3166-1 alpha-2 country code of the customer."
+      - name: product_id
+        description: "Foreign key to product dimension."
+        tests:
+          - not_null
+      - name: product_name
+        description: "Name of the product sold."
+      - name: category_id
+        description: "Foreign key to product category."
+      - name: category_name
+        description: "Name of the product category."
+      - name: product_class
+        description: "Classification of the product."
+      - name: product_is_allergic
+        description: "Indicates if the product is an allergen."
+      - name: product_vitality_days
+        description: "Product shelf-life in days."
+      - name: salesperson_id
+        description: "Foreign key to employee dimension (salesperson)."
+        tests:
+          - not_null
+      - name: salesperson_name
+        description: "Full name of the salesperson."
+      - name: salesperson_city
+        description: "City where the salesperson is located."
+      - name: salesperson_country
+        description: "Country where the salesperson is located."
+      - name: quantity
+        description: "Number of units sold in this transaction."
+        tests:
+          - not_null
+      - name: unit_price
+        description: "Price per unit of the product."
+      - name: discount
+        description: "Discount amount applied to the sale. Defaults to 0 if null."
+        tests:
+          - not_null
+      - name: total_price
+        description: "Final sale price after discounts."
+        tests:
+          - not_null
+      - name: gross_amount
+        description: "Calculated gross amount (unit_price * quantity) before discounts."
+      - name: net_amount
+        description: "Calculated net amount (total_price - discount)."
+      - name: sales_at
+        description: "Timestamp of the sale transaction."
+        tests:
+          - not_null
+      - name: sales_date
+        description: "Date of the sale (date only, no time)."
+        tests:
+          - not_null
+      - name: sales_year
+        description: "Year component of the sale date."
+        tests:
+          - not_null
+      - name: sales_month
+        description: "Month component of the sale date (1-12)."
+        tests:
+          - not_null
+      - name: sales_day
+        description: "Day component of the sale date (1-31)."
+        tests:
+          - not_null
+      - name: partition
+        description: "Partition key in YYYYMMDD format derived from sales_at."
+        tests:
+          - not_null
+
+  - name: mdw_cur_daily_sales
+    description: "Daily aggregated sales metrics for overall business trend analysis. One row per day."
+    columns:
+      - name: sales_date
+        description: "The date of the aggregated sales data."
+        tests:
+          - unique
+          - not_null
+      - name: total_transactions
+        description: "Count of unique sales transactions on this date."
+        tests:
+          - not_null
+      - name: unique_customers
+        description: "Count of distinct customers who made purchases."
+        tests:
+          - not_null
+      - name: unique_products
+        description: "Count of distinct products sold."
+        tests:
+          - not_null
+      - name: active_salespersons
+        description: "Count of distinct salespersons who made sales."
+        tests:
+          - not_null
+      - name: total_quantity_sold
+        description: "Total units sold across all transactions."
+        tests:
+          - not_null
+      - name: gross_revenue
+        description: "Total gross revenue before discounts."
+        tests:
+          - not_null
+      - name: total_discounts
+        description: "Total discounts given across all transactions."
+        tests:
+          - not_null
+      - name: total_revenue
+        description: "Total revenue after discounts (sum of total_price)."
+        tests:
+          - not_null
+      - name: net_revenue
+        description: "Total net revenue (total_revenue - total_discounts)."
+        tests:
+          - not_null
+      - name: avg_transaction_value
+        description: "Average value per transaction."
+      - name: avg_quantity_per_transaction
+        description: "Average quantity sold per transaction."
+      - name: avg_discount_per_transaction
+        description: "Average discount applied per transaction."
+      - name: partition
+        description: "Partition key in YYYYMMDD format."
+        tests:
+          - not_null
+
+  - name: mdw_cur_product_performance
+    description: "Daily product-level performance metrics for product analysis and ranking."
+    columns:
+      - name: sales_date
+        description: "The date of the aggregated product data."
+        tests:
+          - not_null
+      - name: product_id
+        description: "Foreign key to product dimension."
+        tests:
+          - not_null
+      - name: product_name
+        description: "Name of the product."
+        tests:
+          - not_null
+      - name: category_id
+        description: "Foreign key to product category."
+      - name: category_name
+        description: "Name of the product category."
+      - name: product_class
+        description: "Classification of the product."
+      - name: total_transactions
+        description: "Count of transactions for this product on this date."
+        tests:
+          - not_null
+      - name: unique_customers
+        description: "Count of distinct customers who bought this product."
+        tests:
+          - not_null
+      - name: total_quantity_sold
+        description: "Total units of this product sold."
+        tests:
+          - not_null
+      - name: gross_revenue
+        description: "Gross revenue from this product."
+        tests:
+          - not_null
+      - name: total_discounts
+        description: "Total discounts applied to this product."
+        tests:
+          - not_null
+      - name: total_revenue
+        description: "Total revenue from this product after discounts."
+        tests:
+          - not_null
+      - name: net_revenue
+        description: "Net revenue from this product."
+        tests:
+          - not_null
+      - name: avg_transaction_value
+        description: "Average transaction value for this product."
+      - name: avg_quantity_per_transaction
+        description: "Average quantity per transaction for this product."
+      - name: min_unit_price
+        description: "Minimum unit price observed for this product."
+      - name: max_unit_price
+        description: "Maximum unit price observed for this product."
+      - name: partition
+        description: "Partition key in YYYYMMDD format."
+        tests:
+          - not_null
+
+  - name: mdw_cur_customer_summary
+    description: "Customer-level summary metrics for segmentation and lifetime value analysis. One row per customer."
+    columns:
+      - name: customer_id
+        description: "Primary key. Unique identifier for each customer."
+        tests:
+          - unique
+          - not_null
+      - name: customer_name
+        description: "Full name of the customer."
+        tests:
+          - not_null
+      - name: customer_city
+        description: "City where the customer resides."
+      - name: customer_country
+        description: "Country where the customer resides."
+      - name: customer_country_code
+        description: "ISO country code of the customer."
+      - name: first_purchase_date
+        description: "Date of the customer's first purchase."
+        tests:
+          - not_null
+      - name: last_purchase_date
+        description: "Date of the customer's most recent purchase."
+        tests:
+          - not_null
+      - name: customer_tenure_days
+        description: "Number of days between first and last purchase."
+      - name: total_transactions
+        description: "Total number of transactions by this customer."
+        tests:
+          - not_null
+      - name: active_days
+        description: "Number of distinct days the customer made purchases."
+        tests:
+          - not_null
+      - name: unique_products_purchased
+        description: "Count of distinct products purchased."
+        tests:
+          - not_null
+      - name: unique_categories_purchased
+        description: "Count of distinct categories purchased from."
+        tests:
+          - not_null
+      - name: total_quantity_purchased
+        description: "Total units purchased by this customer."
+        tests:
+          - not_null
+      - name: lifetime_gross_revenue
+        description: "Total gross revenue from this customer."
+        tests:
+          - not_null
+      - name: lifetime_discounts
+        description: "Total discounts given to this customer."
+        tests:
+          - not_null
+      - name: lifetime_revenue
+        description: "Total revenue from this customer (sum of total_price)."
+        tests:
+          - not_null
+      - name: lifetime_net_revenue
+        description: "Total net revenue from this customer."
+        tests:
+          - not_null
+      - name: avg_transaction_value
+        description: "Average transaction value for this customer."
+      - name: avg_quantity_per_transaction
+        description: "Average quantity per transaction for this customer."
+      - name: avg_transactions_per_active_day
+        description: "Average transactions per day when customer was active."
+
+  - name: mdw_cur_salesperson_performance
+    description: "Daily salesperson performance metrics for sales team analysis and performance tracking."
+    columns:
+      - name: sales_date
+        description: "The date of the aggregated salesperson data."
+        tests:
+          - not_null
+      - name: salesperson_id
+        description: "Foreign key to employee dimension."
+        tests:
+          - not_null
+      - name: salesperson_name
+        description: "Full name of the salesperson."
+        tests:
+          - not_null
+      - name: salesperson_city
+        description: "City where the salesperson is located."
+      - name: salesperson_country
+        description: "Country where the salesperson is located."
+      - name: total_transactions
+        description: "Count of transactions handled by this salesperson."
+        tests:
+          - not_null
+      - name: unique_customers_served
+        description: "Count of distinct customers served."
+        tests:
+          - not_null
+      - name: unique_products_sold
+        description: "Count of distinct products sold."
+        tests:
+          - not_null
+      - name: unique_categories_sold
+        description: "Count of distinct categories sold."
+        tests:
+          - not_null
+      - name: total_quantity_sold
+        description: "Total units sold by this salesperson."
+        tests:
+          - not_null
+      - name: gross_revenue
+        description: "Gross revenue generated by this salesperson."
+        tests:
+          - not_null
+      - name: total_discounts_given
+        description: "Total discounts given by this salesperson."
+        tests:
+          - not_null
+      - name: total_revenue
+        description: "Total revenue generated by this salesperson."
+        tests:
+          - not_null
+      - name: net_revenue
+        description: "Net revenue generated by this salesperson."
+        tests:
+          - not_null
+      - name: avg_transaction_value
+        description: "Average transaction value for this salesperson."
+      - name: avg_quantity_per_transaction
+        description: "Average quantity per transaction for this salesperson."
+      - name: avg_discount_per_transaction
+        description: "Average discount per transaction for this salesperson."
+      - name: partition
+        description: "Partition key in YYYYMMDD format."
+        tests:
+          - not_null
+
+  - name: mdw_cur_category_daily_sales
+    description: "Daily category-level sales metrics for category management and trend analysis."
+    columns:
+      - name: sales_date
+        description: "The date of the aggregated category data."
+        tests:
+          - not_null
+      - name: category_id
+        description: "Foreign key to product category."
+        tests:
+          - not_null
+      - name: category_name
+        description: "Name of the product category."
+        tests:
+          - not_null
+      - name: total_transactions
+        description: "Count of transactions in this category."
+        tests:
+          - not_null
+      - name: unique_customers
+        description: "Count of distinct customers who bought from this category."
+        tests:
+          - not_null
+      - name: unique_products_sold
+        description: "Count of distinct products sold in this category."
+        tests:
+          - not_null
+      - name: total_quantity_sold
+        description: "Total units sold in this category."
+        tests:
+          - not_null
+      - name: gross_revenue
+        description: "Gross revenue from this category."
+        tests:
+          - not_null
+      - name: total_discounts
+        description: "Total discounts applied in this category."
+        tests:
+          - not_null
+      - name: total_revenue
+        description: "Total revenue from this category after discounts."
+        tests:
+          - not_null
+      - name: net_revenue
+        description: "Net revenue from this category."
+        tests:
+          - not_null
+      - name: avg_transaction_value
+        description: "Average transaction value in this category."
+      - name: avg_quantity_per_transaction
+        description: "Average quantity per transaction in this category."
+      - name: partition
+        description: "Partition key in YYYYMMDD format."
+        tests:
+          - not_null

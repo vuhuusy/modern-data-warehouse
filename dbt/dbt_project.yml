@@ -1,11 +1,11 @@
 # Modern Data Warehouse - dbt Project Configuration
 # Documentation: https://docs.getdbt.com/reference/dbt_project.yml
 
-name: 'modern_data_warehouse'
+name: 'mdw'
 version: '1.0.0'
 
 # This setting configures which "profile" dbt uses for this project.
-profile: 'modern_data_warehouse'
+profile: 'mdw'
 
 # These configurations specify where dbt should look for different types of files.
 model-paths: ["models"]
@@ -17,11 +17,11 @@ snapshot-paths: ["snapshots"]
 
 clean-targets:
   - "target"
-  - "dbt_packages"
+  # - "dbt_packages"
 
 # Configuring models
 models:
-  modern_data_warehouse:
+  mdw:
     # Raw layer - External tables (defined via sources, not models)
     raw:
       +enabled: false  # Raw tables are external, defined in schema.yml
@@ -49,22 +49,16 @@ models:
 
 # Seed configurations
 seeds:
-  modern_data_warehouse:
+  mdw:
     +schema: seeds
 
 # Snapshot configurations
 snapshots:
-  modern_data_warehouse:
+  mdw:
     +schema: snapshots
 
 # Test configurations
 tests:
-  modern_data_warehouse:
+  mdw:
     +store_failures: true
     +schema: test_results
-
-# Variable definitions
-vars:
-  # Default date range for incremental models
-  start_date: '2018-01-01'
-  end_date: '2018-12-31'

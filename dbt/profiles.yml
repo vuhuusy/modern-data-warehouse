@@ -1,40 +1,22 @@
-modern_data_warehouse:
+mdw:
   target: dev
   outputs:
     dev:
       type: athena
-      # AWS region where Athena is deployed
       region_name: us-west-2
-
-      # S3 location for Athena query results
-      s3_staging_dir: s3://mdw-dev-work-zone/athena/query/result/dbt/
-
-      # S3 location for dbt-created Iceberg tables
-      s3_data_dir: s3://mdw-dev-std-cur/grocery-sales/
-
-      # Athena workgroup (must exist in AWS)
+      s3_staging_dir: s3://mdw-dev-work-zone/athena/query/result/
+      s3_data_dir: s3://mdw-dev-data-lake/grocery-sales/
       work_group: mdw-dev
-
-      # Default database for raw external tables
       database: awsdatacatalog
-
-      # Default schema (overridden per model in dbt_project.yml)
-      schema: stg
-
-      # Number of threads for parallel execution
-      threads: 4
-
-      # AWS credentials (optional - uses default credential chain if omitted)
-      # aws_access_key_id: your_access_key
-      # aws_secret_access_key: your_secret_key
-      # aws_profile_name: your_profile_name
+      schema: mdw
+      threads: 2
 
     prod:
       type: athena
       region_name: us-west-2
-      # s3_staging_dir: s3://mdw-prod-work-zone/athena/query/result/dbt/
-      s3_data_dir: s3://mdw-prod-std-cur/grocery-sales/
+      s3_staging_dir: s3://mdw-prod-work-zone/athena/query/result/
+      s3_data_dir: s3://mdw-prod-data-lake/grocery-sales/
       work_group: mdw-prod
       database: awsdatacatalog
-      schema: stg
-      threads: 8
+      schema: mdw
+      threads: 4
