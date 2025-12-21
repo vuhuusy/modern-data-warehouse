@@ -1,0 +1,44 @@
+# Modern Data Warehouse - dbt Profile Configuration Example
+# Copy this file to ~/.dbt/profiles.yml and update with your AWS settings
+# Documentation: https://docs.getdbt.com/docs/core/connect-data-platform/athena-setup
+
+modern_data_warehouse:
+  target: dev
+  outputs:
+    dev:
+      type: athena
+      # AWS region where Athena is deployed
+      region_name: us-east-1
+
+      # S3 location for Athena query results
+      s3_staging_dir: s3://your-bucket-name/athena-results/
+
+      # S3 location for dbt-created Iceberg tables
+      s3_data_dir: s3://your-bucket-name/dbt-data/
+
+      # Athena workgroup (must exist in AWS)
+      work_group: primary
+
+      # Default database for raw external tables
+      database: mdw_raw
+
+      # Default schema (overridden per model in dbt_project.yml)
+      schema: stg
+
+      # Number of threads for parallel execution
+      threads: 4
+
+      # AWS credentials (optional - uses default credential chain if omitted)
+      # aws_access_key_id: your_access_key
+      # aws_secret_access_key: your_secret_key
+      # aws_profile_name: your_profile_name
+
+    prod:
+      type: athena
+      region_name: us-east-1
+      s3_staging_dir: s3://your-prod-bucket/athena-results/
+      s3_data_dir: s3://your-prod-bucket/dbt-data/
+      work_group: production
+      database: mdw_raw
+      schema: stg
+      threads: 8

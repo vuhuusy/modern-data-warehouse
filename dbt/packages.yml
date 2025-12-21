@@ -1,0 +1,13 @@
+# Modern Data Warehouse - dbt Package Dependencies
+# Documentation: https://docs.getdbt.com/docs/build/packages
+
+packages:
+  # dbt-utils: Common utility macros for dbt projects
+  # https://hub.getdbt.com/dbt-labs/dbt_utils/latest/
+  - package: dbt-labs/dbt_utils
+    version: ">=1.0.0"
+
+  # dbt-expectations: Data quality testing macros (Great Expectations style)
+  # https://hub.getdbt.com/calogica/dbt_expectations/latest/
+  - package: calogica/dbt_expectations
+    version: ">=0.10.0"
