@@ -713,3 +713,382 @@ dbt_project/
 - [ ] Added `schema.yml` with descriptions and tests
 - [ ] Applied appropriate materialization
 - [ ] Followed SQL style guidelines
+
+---
+
+## Write Terraform Infrastructure
+
+This section defines **authoritative rules** for provisioning AWS infrastructure using Terraform. All AI tools **MUST strictly follow** these instructions when generating or reviewing Terraform code.
+
+### Technology Stack
+
+| Component | Technology |
+|-----------|------------|
+| Cloud Provider | AWS |
+| Default Region | us-west-2 |
+| IaC Tool | Terraform |
+| State Backend | S3 + DynamoDB |
+
+### Core Principles
+
+1. **Infrastructure as Code** - All infrastructure MUST be defined in Terraform; manual AWS Console changes are forbidden
+2. **Idempotency** - Configurations MUST produce the same result when applied multiple times
+3. **Environment Isolation** - MUST maintain separate state files for each environment (dev, prod)
+4. **Remote State** - MUST use S3 backend with DynamoDB for state locking
+5. **Security First** - MUST follow least privilege; deny by default
+6. **Version Control** - MUST version control all Terraform configurations in Git
+
+---
+
+### Mandatory Tagging Standard
+
+All AWS resources **MUST** include the following tags:
+
+```hcl
+tags = {
+  owner         = "sy.vuhuu"
+  managed_by    = "it-cloud-aws"
+  project       = var.project_name
+  resource_type = "<resource-type>"
+  env           = var.environment
+  created_by    = "terraform"
+  created_date  = "YYYYMMDD"
+}
+```
+
+**Tag Definitions:**
+
+| Tag Key | Description | Example Values |
+|---------|-------------|----------------|
+| `owner` | Team or individual responsible | `sy.vuhuu` |
+| `managed_by` | Managing organization/team | `it-cloud-aws` |
+| `project` | Project identifier | `mdw`, `data-platform` |
+| `resource_type` | AWS resource type | `s3`, `iam-role`, `glue-database` |
+| `env` | Deployment environment | `dev`, `prod` |
+| `created_by` | Provisioning method | `terraform` |
+| `created_date` | Creation date | `20251221` |
+
+**Implementation Pattern:**
+```hcl
+locals {
+  common_tags = {
+    owner        = var.owner
+    managed_by   = var.managed_by
+    project      = var.project_name
+    env          = var.environment
+    created_by   = "terraform"
+    created_date = formatdate("YYYYMMDD", timestamp())
+  }
+}
+
+resource "aws_s3_bucket" "data_lake" {
+  bucket = "${var.project_name}-${var.environment}-data-lake"
+
+  tags = merge(local.common_tags, {
+    resource_type = "s3"
+  })
+}
+```
+
+---
+
+### Project Structure
+
+```
+infra/
+├── environments/
+│   ├── dev/
+│   │   ├── main.tf
+│   │   ├── variables.tf
+│   │   ├── outputs.tf
+│   │   ├── terraform.tfvars
+│   │   ├── backend.tf
+│   │   └── versions.tf
+│   └── prod/
+│       ├── main.tf
+│       ├── variables.tf
+│       ├── outputs.tf
+│       ├── terraform.tfvars
+│       ├── backend.tf
+│       └── versions.tf
+├── modules/
+│   ├── s3/
+│   ├── iam/
+│   └── glue/
+└── README.md
+```
+
+**File Responsibilities:**
+
+| File | Responsibility |
+|------|----------------|
+| `main.tf` | Resource definitions and module calls |
+| `variables.tf` | Input variable declarations with descriptions |
+| `outputs.tf` | Output value definitions |
+| `versions.tf` | Terraform and provider version constraints |
+| `backend.tf` | Remote state backend configuration |
+| `terraform.tfvars` | Environment-specific variable values |
+| `locals.tf` | Local values and computed expressions (optional) |
+
+---
+
+### AWS Resource Naming Conventions
+
+- **MUST** follow pattern: `<project>-<env>-<purpose>[-<qualifier>]`
+- **MUST** use lowercase letters, numbers, and hyphens only
+- **MUST NOT** use underscores in AWS resource names (use hyphens)
+- **MUST NOT** exceed AWS naming limits
+
+**Examples:**
+
+| Resource Type | Naming Pattern | Example |
+|---------------|----------------|---------|
+| S3 Bucket | `<project>-<env>-<purpose>` | `mdw-dev-data-raw` |
+| IAM Role | `<project>-<env>-<service>-role` | `mdw-prod-glue-crawler-role` |
+| IAM Policy | `<project>-<env>-<service>-policy` | `mdw-dev-athena-access-policy` |
+| Glue Database | `<project>_<env>_<purpose>` | `mdw_dev_raw` |
+| Glue Crawler | `<project>-<env>-<purpose>-crawler` | `mdw-prod-sales-crawler` |
+| Athena Workgroup | `<project>-<env>-<purpose>` | `mdw-dev-analytics` |
+
+---
+
+### Provider and Backend Configuration
+
+**Provider Configuration:**
+```hcl
+# versions.tf
+terraform {
+  required_version = ">= 1.5.0"
+
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
+    }
+  }
+}
+
+# main.tf
+provider "aws" {
+  region = var.aws_region
+
+  default_tags {
+    tags = {
+      owner      = var.owner
+      managed_by = var.managed_by
+      project    = var.project_name
+      env        = var.environment
+      created_by = "terraform"
+    }
+  }
+}
+```
+
+**Backend Configuration:**
+```hcl
+# backend.tf
+terraform {
+  backend "s3" {
+    bucket         = "mdw-terraform-state"
+    key            = "env/dev/terraform.tfstate"
+    region         = "us-west-2"
+    encrypt        = true
+    dynamodb_table = "mdw-terraform-locks"
+  }
+}
+```
+
+---
+
+### Security Best Practices
+
+#### IAM Least Privilege
+
+- **MUST** grant minimum permissions required for functionality
+- **MUST** scope permissions to specific resources where possible
+- **MUST NOT** use `*` for resources unless absolutely necessary
+- **MUST NOT** use AWS managed `AdministratorAccess` or `PowerUserAccess` policies
+
+**Example:**
+```hcl
+# Good: Scoped permissions
+data "aws_iam_policy_document" "glue_s3_access" {
+  statement {
+    sid    = "ReadRawData"
+    effect = "Allow"
+    actions = [
+      "s3:GetObject",
+      "s3:ListBucket"
+    ]
+    resources = [
+      aws_s3_bucket.raw.arn,
+      "${aws_s3_bucket.raw.arn}/*"
+    ]
+  }
+}
+
+# Bad: Overly permissive
+data "aws_iam_policy_document" "bad_example" {
+  statement {
+    effect    = "Allow"
+    actions   = ["s3:*"]
+    resources = ["*"]
+  }
+}
+```
+
+#### Credential Management
+
+- **MUST NOT** hardcode credentials in Terraform files
+- **MUST NOT** commit `.tfvars` files containing secrets to version control
+- **MUST** use AWS IAM roles for service-to-service authentication
+- **SHOULD** use AWS Secrets Manager or SSM Parameter Store for secrets
+
+#### Encryption Standards
+
+- **MUST** enable encryption at rest for S3 buckets
+- **MUST** block public access to S3 buckets by default
+- **SHOULD** use AWS KMS customer-managed keys for production
+
+**Example:**
+```hcl
+resource "aws_s3_bucket_public_access_block" "data_lake" {
+  bucket = aws_s3_bucket.data_lake.id
+
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "data_lake" {
+  bucket = aws_s3_bucket.data_lake.id
+
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256"
+    }
+  }
+}
+```
+
+---
+
+### Terraform Coding Standards
+
+#### Formatting Conventions
+
+- **MUST** run `terraform fmt` before committing code
+- **MUST** use 2-space indentation (Terraform default)
+- **MUST** place meta-arguments (`count`, `for_each`, `depends_on`) first
+
+#### Variable Standards
+
+- **MUST** include `description` for all variables
+- **MUST** specify `type` for all variables
+- **SHOULD** include `validation` blocks for constrained values
+- **SHOULD** provide `default` values where sensible
+
+**Example:**
+```hcl
+variable "environment" {
+  description = "Deployment environment. Valid values: dev, prod"
+  type        = string
+
+  validation {
+    condition     = contains(["dev", "prod"], var.environment)
+    error_message = "Environment must be 'dev' or 'prod'."
+  }
+}
+```
+
+#### Use of Locals
+
+- **MUST** use `locals` for repeated values or complex expressions
+- **MUST** use `locals` for tag maps used across multiple resources
+
+**Example:**
+```hcl
+locals {
+  name_prefix = "${var.project_name}-${var.environment}"
+  
+  common_tags = {
+    owner        = var.owner
+    managed_by   = var.managed_by
+    project      = var.project_name
+    env          = var.environment
+    created_by   = "terraform"
+    created_date = formatdate("YYYYMMDD", timestamp())
+  }
+}
+```
+
+#### Avoiding Duplication
+
+- **MUST** use `for_each` or `count` for similar resources
+- **MUST** extract repeated patterns into modules
+- **MUST NOT** copy-paste resource blocks with minor variations
+
+---
+
+### Operational Best Practices
+
+#### Plan Before Apply
+
+- **MUST** run `terraform plan` before every `terraform apply`
+- **MUST** review plan output for unexpected changes
+- **SHOULD** use `-out` flag to save plans for production
+
+```bash
+# Development
+terraform plan
+terraform apply
+
+# Production
+terraform plan -out=tfplan
+terraform apply tfplan
+```
+
+#### Destroy Protection
+
+- **MUST** use `prevent_destroy` for critical resources
+- **MUST** enable deletion protection for production databases
+
+```hcl
+resource "aws_s3_bucket" "terraform_state" {
+  bucket = "${var.project_name}-terraform-state"
+
+  lifecycle {
+    prevent_destroy = true
+  }
+}
+```
+
+---
+
+### Anti-Patterns to Avoid
+
+| Anti-Pattern | Why It's Bad | Correct Approach |
+|--------------|--------------|------------------|
+| Hardcoded credentials | Security risk | Use IAM roles or environment variables |
+| `resources = ["*"]` | Violates least privilege | Scope to specific ARNs |
+| No remote state | State loss, no collaboration | Use S3 + DynamoDB backend |
+| No version pinning | Unpredictable behavior | Pin Terraform and provider versions |
+| Missing tags | Poor governance, cost tracking | Apply mandatory tags to all resources |
+| Public S3 buckets | Data exposure risk | Block public access by default |
+| `terraform apply` without plan | Unexpected changes | Always review plan first |
+| Manual console changes | State drift | All changes via Terraform |
+
+---
+
+### Checklist Before Applying Terraform
+
+- [ ] Ran `terraform fmt` and `terraform validate`
+- [ ] Reviewed `terraform plan` output
+- [ ] No unexpected resource destructions
+- [ ] All resources have required tags
+- [ ] Sensitive variables marked as sensitive
+- [ ] No hardcoded credentials or account IDs
+- [ ] S3 buckets have public access blocked
+- [ ] IAM policies follow least privilege
+- [ ] Documentation updated (if applicable)
