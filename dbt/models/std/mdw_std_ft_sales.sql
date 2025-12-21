@@ -26,8 +26,6 @@ with sales as (
         sales_at,
         transaction_number
     from {{ ref('mdw_stg_sales') }}
-    where sales_id is not null
-      and sales_at is not null
 ),
 
 -- Deduplicate sales by sales_id, keeping the latest record
@@ -62,8 +60,6 @@ filtered_sales as (
         transaction_number
     from deduplicated_sales
     where row_num = 1
-      and quantity > 0
-      and total_price >= 0
 ),
 
 -- Dimension lookups with Unknown handling
@@ -100,19 +96,19 @@ dim_date as (
 unknown_product as (
     select product_sk, product_id, price
     from dim_products
-    where product_id = -1
+    where product_id = 0
 ),
 
 unknown_customer as (
     select customer_sk, customer_id
     from dim_customers
-    where customer_id = -1
+    where customer_id = 0
 ),
 
 unknown_employee as (
     select employee_sk, employee_id
     from dim_employees
-    where employee_id = -1
+    where employee_id = 0
 ),
 
 unknown_date as (
@@ -124,7 +120,7 @@ unknown_date as (
 fact_sales as (
     select
         -- Surrogate key for fact row
-        {{ generate_surrogate_key(["'mdw_ft_sales'", 's.sales_id']) }} as sales_sk,
+        {{ generate_surrogate_key(["'mdw'", 's.sales_id']) }} as sales_sk,
 
         -- Natural key
         s.sales_id,
@@ -137,9 +133,9 @@ fact_sales as (
         coalesce(d.date_key, ud.date_key) as date_key,
 
         -- Dimension natural keys (for backward compatibility and debugging)
-        coalesce(s.product_id, cast(-1 as bigint)) as product_id,
-        coalesce(s.customer_id, cast(-1 as bigint)) as customer_id,
-        coalesce(s.salesperson_id, cast(-1 as bigint)) as salesperson_id,
+        coalesce(s.product_id, cast(0 as bigint)) as product_id,
+        coalesce(s.customer_id, cast(0 as bigint)) as customer_id,
+        coalesce(s.salesperson_id, cast(0 as bigint)) as salesperson_id,
 
         -- Measures (additive)
         s.quantity,
