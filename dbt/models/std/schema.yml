@@ -1,0 +1,307 @@
+version: 2
+
+models:
+  - name: mdw_std_dim_customers
+    description: "Standardized customer dimension enriched with city and country geographic data."
+    columns:
+      - name: customer_sk
+        description: "Surrogate key. Hash-based unique identifier for dimension versioning."
+        tests:
+          - unique
+          - not_null
+      - name: customer_id
+        description: "Natural key. Unique identifier for each customer from source system."
+        tests:
+          - unique
+          - not_null
+      - name: first_name
+        description: "First name of the customer."
+        tests:
+          - not_null
+      - name: middle_initial
+        description: "Middle initial of the customer."
+      - name: last_name
+        description: "Last name of the customer."
+        tests:
+          - not_null
+      - name: full_name
+        description: "Derived column. Concatenation of first_name and last_name."
+        tests:
+          - not_null
+      - name: address
+        description: "Residential address of the customer."
+        tests:
+          - not_null
+      - name: city_id
+        description: "Foreign key to cities dimension."
+        tests:
+          - not_null
+      - name: city_name
+        description: "Name of the city where the customer resides."
+      - name: zipcode
+        description: "Zipcode of the customer's city."
+      - name: country_id
+        description: "Foreign key to countries dimension."
+      - name: country_name
+        description: "Name of the country where the customer resides."
+      - name: country_code
+        description: "ISO 3166-1 alpha-2 country code."
+
+  - name: mdw_std_dim_products
+    description: "Standardized product dimension enriched with category data."
+    columns:
+      - name: product_sk
+        description: "Surrogate key. Hash-based unique identifier for dimension versioning."
+        tests:
+          - unique
+          - not_null
+      - name: product_id
+        description: "Natural key. Unique identifier for each product from source system."
+        tests:
+          - unique
+          - not_null
+      - name: product_name
+        description: "Name of the product."
+        tests:
+          - not_null
+      - name: price
+        description: "Price per unit of the product."
+        tests:
+          - not_null
+      - name: category_id
+        description: "Foreign key to categories."
+        tests:
+          - not_null
+      - name: category_name
+        description: "Name of the product category."
+      - name: class
+        description: "Classification of the product."
+      - name: modify_date
+        description: "Last modified date of the product record."
+      - name: resistant
+        description: "Product resistance category."
+      - name: is_allergic
+        description: "Indicates whether the product is an allergen."
+      - name: vitality_days
+        description: "Product vitality/shelf-life in days."
+
+  - name: mdw_std_dim_employees
+    description: "Standardized employee dimension enriched with city and country geographic data."
+    columns:
+      - name: employee_sk
+        description: "Surrogate key. Hash-based unique identifier for dimension versioning."
+        tests:
+          - unique
+          - not_null
+      - name: employee_id
+        description: "Natural key. Unique identifier for each employee from source system."
+        tests:
+          - unique
+          - not_null
+      - name: first_name
+        description: "First name of the employee."
+        tests:
+          - not_null
+      - name: middle_initial
+        description: "Middle initial of the employee."
+      - name: last_name
+        description: "Last name of the employee."
+        tests:
+          - not_null
+      - name: full_name
+        description: "Derived column. Concatenation of first_name and last_name."
+        tests:
+          - not_null
+      - name: birth_date
+        description: "Date of birth of the employee."
+        tests:
+          - not_null
+      - name: gender
+        description: "Gender of the employee."
+        tests:
+          - not_null
+      - name: hire_date
+        description: "Date when the employee was hired."
+        tests:
+          - not_null
+      - name: city_id
+        description: "Foreign key to cities dimension."
+        tests:
+          - not_null
+      - name: city_name
+        description: "Name of the city where the employee resides."
+      - name: zipcode
+        description: "Zipcode of the employee's city."
+      - name: country_id
+        description: "Foreign key to countries dimension."
+      - name: country_name
+        description: "Name of the country where the employee resides."
+      - name: country_code
+        description: "ISO 3166-1 alpha-2 country code."
+
+  - name: mdw_std_dim_date
+    description: "Standardized date dimension for time-based analytics. Contains one row per day from 2018-01-01 to 2018-12-31."
+    columns:
+      - name: date_sk
+        description: "Surrogate key. Hash-based unique identifier for dimension versioning."
+        tests:
+          - unique
+          - not_null
+      - name: date_key
+        description: "Natural key. The date value."
+        tests:
+          - unique
+          - not_null
+      - name: date_id
+        description: "Date identifier in YYYYMMDD format."
+        tests:
+          - unique
+          - not_null
+      - name: year
+        description: "Year component of the date."
+        tests:
+          - not_null
+      - name: quarter
+        description: "Quarter of the year (1-4)."
+        tests:
+          - not_null
+          - accepted_values:
+              values: [1, 2, 3, 4, -1]
+      - name: month
+        description: "Month component of the date (1-12)."
+        tests:
+          - not_null
+      - name: week_of_year
+        description: "Week number within the year."
+        tests:
+          - not_null
+      - name: day_of_month
+        description: "Day of the month (1-31)."
+        tests:
+          - not_null
+      - name: day_of_week
+        description: "Day of the week (1=Monday, 7=Sunday)."
+        tests:
+          - not_null
+      - name: day_of_year
+        description: "Day of the year (1-366)."
+        tests:
+          - not_null
+      - name: year_month
+        description: "Year and month in YYYY-MM format."
+        tests:
+          - not_null
+      - name: year_quarter
+        description: "Year and quarter in YYYY-QN format."
+        tests:
+          - not_null
+      - name: month_name
+        description: "Full name of the month (e.g., January)."
+        tests:
+          - not_null
+      - name: month_name_short
+        description: "Abbreviated month name (e.g., Jan)."
+        tests:
+          - not_null
+      - name: day_name
+        description: "Full name of the day (e.g., Monday)."
+        tests:
+          - not_null
+      - name: day_name_short
+        description: "Abbreviated day name (e.g., Mon)."
+        tests:
+          - not_null
+      - name: is_weekend
+        description: "Boolean flag indicating if the date falls on a weekend."
+      - name: first_day_of_month
+        description: "First day of the month for the given date."
+      - name: last_day_of_month
+        description: "Last day of the month for the given date."
+      - name: first_day_of_quarter
+        description: "First day of the quarter for the given date."
+      - name: first_day_of_year
+        description: "First day of the year for the given date."
+
+  - name: mdw_std_ft_sales
+    description: "Standardized sales fact table at transaction grain. One row per sales transaction (identified by sales_id). Handles unknown dimension references using surrogate key lookup to Unknown records in dimension tables."
+    columns:
+      - name: sales_sk
+        description: "Surrogate key. Hash-based unique identifier for the fact row."
+        tests:
+          - unique
+          - not_null
+      - name: sales_id
+        description: "Natural key. Unique identifier for each sale transaction from source system."
+        tests:
+          - unique
+          - not_null
+      - name: transaction_number
+        description: "Business transaction identifier. May group multiple line items."
+        tests:
+          - not_null
+      - name: product_sk
+        description: "Surrogate foreign key to mdw_std_dim_products. Mapped to Unknown record if source key is missing."
+        tests:
+          - not_null
+          - relationships:
+              to: ref('mdw_std_dim_products')
+              field: product_sk
+      - name: customer_sk
+        description: "Surrogate foreign key to mdw_std_dim_customers. Mapped to Unknown record if source key is missing."
+        tests:
+          - not_null
+          - relationships:
+              to: ref('mdw_std_dim_customers')
+              field: customer_sk
+      - name: employee_sk
+        description: "Surrogate foreign key to mdw_std_dim_employees (salesperson). Mapped to Unknown record if source key is missing."
+        tests:
+          - not_null
+          - relationships:
+              to: ref('mdw_std_dim_employees')
+              field: employee_sk
+      - name: date_key
+        description: "Foreign key to mdw_std_dim_date. Mapped to Unknown record (1900-01-01) if source date is missing."
+        tests:
+          - not_null
+          - relationships:
+              to: ref('mdw_std_dim_date')
+              field: date_key
+      - name: product_id
+        description: "Natural key reference to product dimension. -1 indicates Unknown."
+        tests:
+          - not_null
+      - name: customer_id
+        description: "Natural key reference to customer dimension. -1 indicates Unknown."
+        tests:
+          - not_null
+      - name: salesperson_id
+        description: "Natural key reference to employee dimension. -1 indicates Unknown."
+        tests:
+          - not_null
+      - name: quantity
+        description: "Number of units sold in this transaction. Additive measure."
+        tests:
+          - not_null
+      - name: unit_price
+        description: "Price per unit of the product. NULL if product is unknown."
+      - name: discount
+        description: "Discount amount applied to the sale. NULL if not specified."
+      - name: total_price
+        description: "Final sale price after discounts. Additive measure."
+        tests:
+          - not_null
+      - name: gross_amount
+        description: "Calculated gross amount (unit_price * quantity). NULL if unit_price is unknown."
+      - name: sales_at
+        description: "Timestamp of the sale transaction."
+        tests:
+          - not_null
+      - name: sales_date
+        description: "Date of the sale (date only, no time). Defaults to 1900-01-01 if unknown."
+        tests:
+          - not_null
+      - name: partition
+        description: "Partition key in YYYYMMDD format derived from sales_at. Defaults to 19000101 if unknown."
+        tests:
+          - not_null
