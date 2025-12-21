@@ -71,6 +71,8 @@ The project uses the **Grocery Sales Database**, a simulated retail dataset cont
 | Infrastructure  | Terraform                           | Infrastructure as Code               |
 | Architecture    | Lakehouse Medallion                 | Layered data modeling pattern        |
 
+> **📖 For detailed Tech Stack documentation, see [docs/tech_stack.md](docs/tech_stack.md)**
+
 ---
 
 ## Data Modeling Approach
