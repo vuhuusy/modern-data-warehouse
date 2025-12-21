@@ -1,0 +1,70 @@
+# Modern Data Warehouse - dbt Project Configuration
+# Documentation: https://docs.getdbt.com/reference/dbt_project.yml
+
+name: 'modern_data_warehouse'
+version: '1.0.0'
+
+# This setting configures which "profile" dbt uses for this project.
+profile: 'modern_data_warehouse'
+
+# These configurations specify where dbt should look for different types of files.
+model-paths: ["models"]
+analysis-paths: ["analyses"]
+test-paths: ["tests"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+snapshot-paths: ["snapshots"]
+
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+# Configuring models
+models:
+  modern_data_warehouse:
+    # Raw layer - External tables (defined via sources, not models)
+    raw:
+      +enabled: false  # Raw tables are external, defined in schema.yml
+
+    # Staging layer - Views for cleaning and type casting
+    stg:
+      +materialized: view
+      +schema: stg
+
+    # Standardized layer - Iceberg tables with business logic
+    std:
+      +materialized: table
+      +table_type: iceberg
+      +format: parquet
+      +write_compression: snappy
+      +schema: std
+
+    # Curated layer - Iceberg tables for analytics
+    cur:
+      +materialized: table
+      +table_type: iceberg
+      +format: parquet
+      +write_compression: snappy
+      +schema: cur
+
+# Seed configurations
+seeds:
+  modern_data_warehouse:
+    +schema: seeds
+
+# Snapshot configurations
+snapshots:
+  modern_data_warehouse:
+    +schema: snapshots
+
+# Test configurations
+tests:
+  modern_data_warehouse:
+    +store_failures: true
+    +schema: test_results
+
+# Variable definitions
+vars:
+  # Default date range for incremental models
+  start_date: '2018-01-01'
+  end_date: '2018-12-31'

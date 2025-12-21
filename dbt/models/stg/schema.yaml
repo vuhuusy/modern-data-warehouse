@@ -1,0 +1,20 @@
+version: 2
+
+models:
+  - name: mdw_stg_raw_accessibility_check
+    description: "Utility model to verify all raw source tables are accessible. Returns row counts and status for each table."
+    columns:
+      - name: table_name
+        description: "Name of the raw source table being checked."
+        tests:
+          - not_null
+      - name: row_count
+        description: "Number of rows in the raw table."
+        tests:
+          - not_null
+      - name: status
+        description: "Accessibility status: ACCESSIBLE if rows exist, EMPTY if no rows."
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['ACCESSIBLE', 'EMPTY']
