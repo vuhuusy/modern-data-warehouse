@@ -152,6 +152,7 @@
 - **Data Nature**: Simulated (synthetic) data, not actual business transactions
 - **Geographic Scope**: Multiple cities across multiple countries
 - **Transaction Granularity**: Each row in `sales.csv` represents a transaction
+- **Currency**: USD
 
 ### 6.2 Unspecified Information
 
@@ -161,7 +162,6 @@ The following details are **not documented** in the repository:
 |---------------------------------|--------------|
 | Total record counts per table   | Unspecified  |
 | Data generation methodology     | Unspecified  |
-| Currency for `Price`/`TotalPrice` columns | Unspecified |
 | Timezone for `SalesDate`        | Unspecified  |
 | Business rules for `Discount`   | Unspecified  |
 | Meaning of `Class` values       | Unspecified  |
