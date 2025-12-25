@@ -1,7 +1,7 @@
 -- Amazon Athena external tables for Grocery Sales Database
 -- Assumptions:
 -- - Database/schema: mdw_raw
--- - S3 object paths: s3://mdw-prod-raw/grocery-sales/<table_name>/ (directory/prefix)
+-- - S3 object paths: s3://mdw-dev-data-lake/grocery-sales/raw/<table_name>/ (directory/prefix)
 -- - CSV includes a header row (skipped via TBLPROPERTIES)
 -- - CSV fields may contain commas and are enclosed in double quotes
 -- - Datetime format: yyyy-MM-dd HH:mm:ss.SSS
@@ -20,7 +20,7 @@ WITH SERDEPROPERTIES (
   'escapeChar' = '\\'
 )
 STORED AS TEXTFILE
-LOCATION 's3://mdw-prod-raw/grocery-sales/categories/'
+LOCATION 's3://mdw-dev-data-lake/grocery-sales/raw/categories/'
 TBLPROPERTIES (
   'skip.header.line.count' = '1'
 );
@@ -37,7 +37,7 @@ WITH SERDEPROPERTIES (
   'escapeChar' = '\\'
 )
 STORED AS TEXTFILE
-LOCATION 's3://mdw-prod-raw/grocery-sales/countries/'
+LOCATION 's3://mdw-dev-data-lake/grocery-sales/raw/countries/'
 TBLPROPERTIES (
   'skip.header.line.count' = '1'
 );
@@ -55,7 +55,7 @@ WITH SERDEPROPERTIES (
   'escapeChar' = '\\'
 )
 STORED AS TEXTFILE
-LOCATION 's3://mdw-prod-raw/grocery-sales/cities/'
+LOCATION 's3://mdw-dev-data-lake/grocery-sales/raw/cities/'
 TBLPROPERTIES (
   'skip.header.line.count' = '1'
 );
@@ -75,7 +75,7 @@ WITH SERDEPROPERTIES (
   'escapeChar' = '\\'
 )
 STORED AS TEXTFILE
-LOCATION 's3://mdw-prod-raw/grocery-sales/customers/'
+LOCATION 's3://mdw-dev-data-lake/grocery-sales/raw/customers/'
 TBLPROPERTIES (
   'skip.header.line.count' = '1'
 );
@@ -97,7 +97,7 @@ WITH SERDEPROPERTIES (
   'escapeChar' = '\\'
 )
 STORED AS TEXTFILE
-LOCATION 's3://mdw-prod-raw/grocery-sales/employees/'
+LOCATION 's3://mdw-dev-data-lake/grocery-sales/raw/employees/'
 TBLPROPERTIES (
   'skip.header.line.count' = '1'
 );
@@ -120,7 +120,7 @@ WITH SERDEPROPERTIES (
   'escapeChar' = '\\'
 )
 STORED AS TEXTFILE
-LOCATION 's3://mdw-prod-raw/grocery-sales/products/'
+LOCATION 's3://mdw-dev-data-lake/grocery-sales/raw/products/'
 TBLPROPERTIES (
   'skip.header.line.count' = '1'
 );
@@ -143,7 +143,71 @@ WITH SERDEPROPERTIES (
   'escapeChar' = '\\'
 )
 STORED AS TEXTFILE
-LOCATION 's3://mdw-prod-raw/grocery-sales/sales/'
+LOCATION 's3://mdw-dev-data-lake/grocery-sales/raw/sales/'
 TBLPROPERTIES (
   'skip.header.line.count' = '1'
 );
+
+CREATE TABLE mdw_raw.sales
+WITH (
+    format = 'PARQUET',
+    parquet_compression = 'SNAPPY',
+    external_location = 's3://mdw-dev-data-lake/grocery-sales/raw/sales/',
+    partitioned_by = ARRAY['partition']
+) AS
+WITH cleaned AS (
+    SELECT
+        salesid,
+        salespersonid,
+        customerid,
+        productid,
+        quantity,
+        discount,
+        totalprice,
+        TRY_CAST(salesdate AS TIMESTAMP) AS salesdate_ts,
+        transactionnumber
+    FROM mdw_raw.sales_tmp
+)
+SELECT
+    salesid,
+    salespersonid,
+    customerid,
+    productid,
+    quantity,
+    discount,
+    totalprice,
+    cast(salesdate_ts as VARCHAR) AS salesdate,
+    transactionnumber,
+    cast(date_format(salesdate_ts, '%Y%m%d') AS VARCHAR) AS partition
+FROM cleaned
+WHERE salesdate_ts IS NOT NULL
+  AND date_format(salesdate_ts, '%Y%m%d')
+      BETWEEN '20180101' AND '20180401';
+
+INSERT INTO mdw_raw.sales
+SELECT
+    salesid,
+    salespersonid,
+    customerid,
+    productid,
+    quantity,
+    discount,
+    totalprice,
+    cast(salesdate_ts AS VARCHAR) AS salesdate,
+    transactionnumber,
+    cast(date_format(salesdate_ts, '%Y%m%d') AS VARCHAR) AS partition
+FROM (
+    SELECT
+        salesid,
+        salespersonid,
+        customerid,
+        productid,
+        quantity,
+        discount,
+        totalprice,
+        TRY_CAST(salesdate AS TIMESTAMP) AS salesdate_ts,
+        transactionnumber
+    FROM mdw_raw.sales_tmp
+) t
+WHERE salesdate_ts IS NOT NULL
+  AND date_format(salesdate_ts, '%Y%m%d') >= '20180401';
