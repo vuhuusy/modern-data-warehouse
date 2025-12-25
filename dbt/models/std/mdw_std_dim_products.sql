@@ -38,10 +38,10 @@ categories as (
 unknown_record as (
     select
         cast('0' as varchar) as product_sk,
-        cast(-1 as bigint) as product_id,
+        cast('0' as varchar) as product_id,
         cast('Unknown' as varchar) as product_name,
         cast(null as decimal(10,2)) as price,
-        cast(-1 as bigint) as category_id,
+        cast('0' as varchar) as category_id,
         cast('Unknown' as varchar) as category_name,
         cast('Unknown' as varchar) as class,
         cast(null as date) as modify_date,
@@ -56,7 +56,7 @@ enriched as (
         pr.product_id,
         coalesce(pr.product_name, 'Unknown') as product_name,
         coalesce(pr.price, cast(null as decimal(10,2))) as price,
-        coalesce(pr.category_id, cast(-1 as bigint)) as category_id,
+        coalesce(pr.category_id, cast('0' as varchar)) as category_id,
         coalesce(ca.category_name, 'Unknown') as category_name,
         coalesce(pr.class, 'Unknown') as class,
         pr.modify_date,
@@ -65,6 +65,7 @@ enriched as (
         pr.vitality_days
     from products pr
     left join categories ca on pr.category_id = ca.category_id
+    where pr.product_id in ('1','2')
 ),
 
 -- Combine Unknown record with enriched data

@@ -8,13 +8,13 @@ with source as (
 
 cleaned as (
     select
-        cast(nullif(trim(employeeid), '') as bigint) as employee_id,
+        cast(nullif(trim(employeeid), '') as varchar) as employee_id,
         nullif(trim(firstname), '') as first_name,
         nullif(trim(middleinitial), '') as middle_initial,
         nullif(trim(lastname), '') as last_name,
         cast(cast(nullif(trim(birthdate), '') as timestamp) as date) as birth_date,
         nullif(trim(gender), '') as gender,
-        cast(nullif(trim(cityid), '') as bigint) as city_id,
+        cast(nullif(trim(cityid), '') as varchar) as city_id,
         cast(cast(nullif(trim(hiredate), '') as timestamp) as date) as hire_date
     from source
 )

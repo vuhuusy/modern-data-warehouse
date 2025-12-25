@@ -8,11 +8,11 @@ with source as (
 
 cleaned as (
     select
-        cast(nullif(trim(customerid), '') as bigint) as customer_id,
+        cast(nullif(trim(customerid), '') as varchar) as customer_id,
         nullif(trim(firstname), '') as first_name,
         nullif(trim(middleinitial), '') as middle_initial,
         nullif(trim(lastname), '') as last_name,
-        cast(nullif(trim(cityid), '') as bigint) as city_id,
+        cast(nullif(trim(cityid), '') as varchar) as city_id,
         nullif(trim(address), '') as address
     from source
 )

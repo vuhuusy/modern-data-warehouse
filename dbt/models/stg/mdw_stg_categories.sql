@@ -8,7 +8,7 @@ with source as (
 
 cleaned as (
     select
-        cast(nullif(trim(categoryid), '') as bigint) as category_id,
+        cast(nullif(trim(categoryid), '') as varchar) as category_id,
         nullif(trim(categoryname), '') as category_name
     from source
 )

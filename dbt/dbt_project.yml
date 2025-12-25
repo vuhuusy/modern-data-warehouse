@@ -62,3 +62,7 @@ tests:
   mdw:
     +store_failures: true
     +schema: test_results
+
+# Variables
+vars:
+  partition: '201801'

@@ -47,7 +47,7 @@ countries as (
 unknown_record as (
     select
         cast('0' as varchar) as employee_sk,
-        cast(-1 as bigint) as employee_id,
+        cast('0' as varchar) as employee_id,
         cast('Unknown' as varchar) as first_name,
         cast('Unknown' as varchar) as middle_initial,
         cast('Unknown' as varchar) as last_name,
@@ -55,10 +55,10 @@ unknown_record as (
         cast(null as date) as birth_date,
         cast('Unknown' as varchar) as gender,
         cast(null as date) as hire_date,
-        cast(-1 as bigint) as city_id,
+        cast('0' as varchar) as city_id,
         cast('Unknown' as varchar) as city_name,
         cast('Unknown' as varchar) as zipcode,
-        cast(-1 as bigint) as country_id,
+        cast('0' as varchar) as country_id,
         cast('Unknown' as varchar) as country_name,
         cast('Unknown' as varchar) as country_code
 ),
@@ -78,10 +78,10 @@ enriched as (
         em.birth_date,
         coalesce(em.gender, 'Unknown') as gender,
         em.hire_date,
-        coalesce(em.city_id, cast(-1 as bigint)) as city_id,
+        coalesce(em.city_id, cast('0' as varchar)) as city_id,
         coalesce(ci.city_name, 'Unknown') as city_name,
         coalesce(ci.zipcode, 'Unknown') as zipcode,
-        coalesce(ci.country_id, cast(-1 as bigint)) as country_id,
+        coalesce(ci.country_id, cast('0' as varchar)) as country_id,
         coalesce(co.country_name, 'Unknown') as country_name,
         coalesce(co.country_code, 'Unknown') as country_code
     from employees em
