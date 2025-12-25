@@ -164,7 +164,8 @@ WITH cleaned AS (
         quantity,
         discount,
         totalprice,
-        TRY_CAST(salesdate AS TIMESTAMP) AS salesdate_ts
+        TRY_CAST(salesdate AS TIMESTAMP) AS salesdate_ts,
+        transactionnumber
     FROM mdw_raw.sales_tmp
 )
 SELECT
@@ -175,8 +176,9 @@ SELECT
     quantity,
     discount,
     totalprice,
-    salesdate_ts AS salesdate,
-    date_format(salesdate_ts, '%Y%m%d') AS partition
+    cast(salesdate_ts as VARCHAR) AS salesdate,
+    transactionnumber,
+    cast(date_format(salesdate_ts, '%Y%m%d') AS VARCHAR) AS partition
 FROM cleaned
 WHERE salesdate_ts IS NOT NULL
   AND date_format(salesdate_ts, '%Y%m%d')
@@ -191,8 +193,9 @@ SELECT
     quantity,
     discount,
     totalprice,
-    salesdate_ts AS salesdate,
-    date_format(salesdate_ts, '%Y%m%d') AS partition
+    cast(salesdate_ts AS VARCHAR) AS salesdate,
+    transactionnumber,
+    cast(date_format(salesdate_ts, '%Y%m%d') AS VARCHAR) AS partition
 FROM (
     SELECT
         salesid,
@@ -202,7 +205,8 @@ FROM (
         quantity,
         discount,
         totalprice,
-        TRY_CAST(salesdate AS TIMESTAMP) AS salesdate_ts
+        TRY_CAST(salesdate AS TIMESTAMP) AS salesdate_ts,
+        transactionnumber
     FROM mdw_raw.sales_tmp
 ) t
 WHERE salesdate_ts IS NOT NULL
