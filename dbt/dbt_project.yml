@@ -65,4 +65,4 @@ tests:
 
 # Variables
 vars:
-  partition: '201801'
+  partition: '20180101'
