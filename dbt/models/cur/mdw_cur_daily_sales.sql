@@ -26,7 +26,7 @@ with fact_sales as (
         total_price,
         gross_amount,
         net_amount
-    from {{ ref('mdw_cur_ft_sales') }}
+    from {{ ref('mdw_std_ft_sales') }}
 ),
 
 daily_aggregates as (
