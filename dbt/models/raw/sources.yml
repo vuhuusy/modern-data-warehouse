@@ -156,3 +156,5 @@ sources:
           - name: transactionnumber
             description: "Unique identifier for the transaction."
             data_type: string
+          - name: partition
+            description: "Partition identifier for the data file."
