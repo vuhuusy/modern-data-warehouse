@@ -8,10 +8,10 @@ with source as (
 
 cleaned as (
     select
-        cast(nullif(trim(cityid), '') as bigint) as city_id,
+        cast(nullif(trim(cityid), '') as varchar) as city_id,
         nullif(trim(cityname), '') as city_name,
         nullif(trim(zipcode), '') as zipcode,
-        cast(nullif(trim(countryid), '') as bigint) as country_id
+        cast(nullif(trim(countryid), '') as varchar) as country_id
     from source
 )
 

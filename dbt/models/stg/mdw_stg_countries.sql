@@ -8,7 +8,7 @@ with source as (
 
 cleaned as (
     select
-        cast(nullif(trim(countryid), '') as bigint) as country_id,
+        cast(nullif(trim(countryid), '') as varchar) as country_id,
         nullif(trim(countryname), '') as country_name,
         nullif(trim(countrycode), '') as country_code
     from source
