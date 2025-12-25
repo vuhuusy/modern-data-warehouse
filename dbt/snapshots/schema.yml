@@ -1,0 +1,131 @@
+version: 2
+
+snapshots:
+  - name: snp_dim_products
+    description: "SCD Type 2 snapshot for product dimension. Tracks historical changes to product attributes."
+    columns:
+      - name: product_id
+        description: "Natural key. Unique identifier for each product from source system."
+        tests:
+          - not_null
+      - name: product_name
+        description: "Name of the product."
+      - name: price
+        description: "Price per unit of the product."
+      - name: category_id
+        description: "Foreign key to categories."
+      - name: category_name
+        description: "Name of the product category."
+      - name: class
+        description: "Classification of the product."
+      - name: modify_date
+        description: "Last modified date of the product record."
+      - name: resistant
+        description: "Product resistance category."
+      - name: is_allergic
+        description: "Indicates whether the product is an allergen."
+      - name: vitality_days
+        description: "Product vitality/shelf-life in days."
+      - name: dbt_scd_id
+        description: "dbt-generated unique identifier for each snapshot row."
+        tests:
+          - unique
+          - not_null
+      - name: dbt_updated_at
+        description: "Timestamp when the record was last updated by dbt snapshot."
+      - name: dbt_valid_from
+        description: "Timestamp when this version of the record became effective."
+        tests:
+          - not_null
+      - name: dbt_valid_to
+        description: "Timestamp when this version expired. NULL indicates current record."
+
+  - name: snp_dim_customers
+    description: "SCD Type 2 snapshot for customer dimension. Tracks historical changes to customer attributes."
+    columns:
+      - name: customer_id
+        description: "Natural key. Unique identifier for each customer from source system."
+        tests:
+          - not_null
+      - name: first_name
+        description: "First name of the customer."
+      - name: middle_initial
+        description: "Middle initial of the customer."
+      - name: last_name
+        description: "Last name of the customer."
+      - name: full_name
+        description: "Derived column. Concatenation of first_name and last_name."
+      - name: address
+        description: "Residential address of the customer."
+      - name: city_id
+        description: "Foreign key to cities dimension."
+      - name: city_name
+        description: "Name of the city where the customer resides."
+      - name: zipcode
+        description: "Zipcode of the customer's city."
+      - name: country_id
+        description: "Foreign key to countries dimension."
+      - name: country_name
+        description: "Name of the country where the customer resides."
+      - name: country_code
+        description: "ISO 3166-1 alpha-2 country code."
+      - name: dbt_scd_id
+        description: "dbt-generated unique identifier for each snapshot row."
+        tests:
+          - unique
+          - not_null
+      - name: dbt_updated_at
+        description: "Timestamp when the record was last updated by dbt snapshot."
+      - name: dbt_valid_from
+        description: "Timestamp when this version of the record became effective."
+        tests:
+          - not_null
+      - name: dbt_valid_to
+        description: "Timestamp when this version expired. NULL indicates current record."
+
+  - name: snp_dim_employees
+    description: "SCD Type 2 snapshot for employee dimension. Tracks historical changes to employee attributes."
+    columns:
+      - name: employee_id
+        description: "Natural key. Unique identifier for each employee from source system."
+        tests:
+          - not_null
+      - name: first_name
+        description: "First name of the employee."
+      - name: middle_initial
+        description: "Middle initial of the employee."
+      - name: last_name
+        description: "Last name of the employee."
+      - name: full_name
+        description: "Derived column. Concatenation of first_name and last_name."
+      - name: birth_date
+        description: "Date of birth of the employee."
+      - name: gender
+        description: "Gender of the employee."
+      - name: hire_date
+        description: "Date when the employee was hired."
+      - name: city_id
+        description: "Foreign key to cities dimension."
+      - name: city_name
+        description: "Name of the city where the employee resides."
+      - name: zipcode
+        description: "Zipcode of the employee's city."
+      - name: country_id
+        description: "Foreign key to countries dimension."
+      - name: country_name
+        description: "Name of the country where the employee resides."
+      - name: country_code
+        description: "ISO 3166-1 alpha-2 country code."
+      - name: dbt_scd_id
+        description: "dbt-generated unique identifier for each snapshot row."
+        tests:
+          - unique
+          - not_null
+      - name: dbt_updated_at
+        description: "Timestamp when the record was last updated by dbt snapshot."
+      - name: dbt_valid_from
+        description: "Timestamp when this version of the record became effective."
+        tests:
+          - not_null
+      - name: dbt_valid_to
+        description: "Timestamp when this version expired. NULL indicates current record."

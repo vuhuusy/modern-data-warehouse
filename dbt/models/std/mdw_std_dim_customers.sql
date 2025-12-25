@@ -1,7 +1,7 @@
 -- models/std/mdw_std_dim_customers.sql
--- Standardized customer dimension with geographic enrichment
--- Includes handling for missing/Unknown values with a default Unknown record
--- Unknown record (customer_id = 0) ensures fact tables always have valid joins
+-- Standardized customer dimension with SCD Type 2 support
+-- Sources from snapshot table to preserve historical changes
+-- Unknown record (customer_sk = 0) ensures fact tables always have valid joins
 
 {{
     config(
@@ -12,37 +12,9 @@
     )
 }}
 
-with customers as (
-    select
-        customer_id,
-        first_name,
-        middle_initial,
-        last_name,
-        city_id,
-        address
-    from {{ ref('mdw_stg_customers') }}
-),
-
-cities as (
-    select
-        city_id,
-        city_name,
-        zipcode,
-        country_id
-    from {{ ref('mdw_stg_cities') }}
-),
-
-countries as (
-    select
-        country_id,
-        country_name,
-        country_code
-    from {{ ref('mdw_stg_countries') }}
-),
-
 -- Unknown record for handling missing/null customer references in fact tables
 -- Uses 0 as deterministic surrogate key to ensure stability across runs
-unknown_record as (
+with unknown_record as (
     select
         cast('0' as varchar) as customer_sk,
         cast('0' as varchar) as customer_id,
@@ -56,31 +28,53 @@ unknown_record as (
         cast('Unknown' as varchar) as zipcode,
         cast('0' as varchar) as country_id,
         cast('Unknown' as varchar) as country_name,
-        cast('Unknown' as varchar) as country_code
+        cast('Unknown' as varchar) as country_code,
+        cast('1900-01-01' as timestamp) as valid_from,
+        cast('9999-12-31' as timestamp) as valid_to,
+        cast(true as boolean) as is_current
 ),
 
+-- Source from snapshot table with SCD Type 2 metadata
+snapshot_data as (
+    select
+        customer_id,
+        first_name,
+        middle_initial,
+        last_name,
+        full_name,
+        address,
+        city_id,
+        city_name,
+        zipcode,
+        country_id,
+        country_name,
+        country_code,
+        dbt_valid_from as valid_from,
+        dbt_valid_to as valid_to,
+        case when dbt_valid_to is null then true else false end as is_current
+    from {{ ref('snp_dim_customers') }}
+),
+
+-- Generate surrogate key including validity period for SCD2
 enriched as (
     select
-        {{ generate_surrogate_key(["'mdw'", 'cu.customer_id']) }} as customer_sk,
-        cu.customer_id,
-        coalesce(cu.first_name, 'Unknown') as first_name,
-        coalesce(cu.middle_initial, 'Unknown') as middle_initial,
-        coalesce(cu.last_name, 'Unknown') as last_name,
-        coalesce(
-            cu.first_name, 'Unknown'
-        ) || ' ' || coalesce(
-            cu.last_name, 'Unknown'
-        ) as full_name,
-        coalesce(cu.address, 'Unknown') as address,
-        coalesce(cu.city_id, cast('0' as varchar)) as city_id,
-        coalesce(ci.city_name, 'Unknown') as city_name,
-        coalesce(ci.zipcode, 'Unknown') as zipcode,
-        coalesce(ci.country_id, cast('0' as varchar)) as country_id,
-        coalesce(co.country_name, 'Unknown') as country_name,
-        coalesce(co.country_code, 'Unknown') as country_code
-    from customers cu
-    left join cities ci on cu.city_id = ci.city_id
-    left join countries co on ci.country_id = co.country_id
+        {{ generate_surrogate_key(["'mdw'", 'customer_id', 'cast(valid_from as varchar)']) }} as customer_sk,
+        customer_id,
+        first_name,
+        middle_initial,
+        last_name,
+        full_name,
+        address,
+        city_id,
+        city_name,
+        zipcode,
+        country_id,
+        country_name,
+        country_code,
+        valid_from,
+        coalesce(valid_to, cast('9999-12-31' as timestamp)) as valid_to,
+        is_current
+    from snapshot_data
 ),
 
 -- Combine Unknown record with enriched data
@@ -103,5 +97,8 @@ select
     zipcode,
     country_id,
     country_name,
-    country_code
+    country_code,
+    valid_from,
+    valid_to,
+    is_current
 from final

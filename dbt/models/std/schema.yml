@@ -46,6 +46,18 @@ models:
         description: "Name of the country where the customer resides."
       - name: country_code
         description: "ISO 3166-1 alpha-2 country code."
+      - name: valid_from
+        description: "SCD Type 2. Timestamp when this version of the record became effective."
+        tests:
+          - not_null
+      - name: valid_to
+        description: "SCD Type 2. Timestamp when this version of the record expired. Value of 9999-12-31 indicates current record."
+        tests:
+          - not_null
+      - name: is_current
+        description: "SCD Type 2. Boolean flag indicating if this is the current version of the record."
+        tests:
+          - not_null
 
   - name: mdw_std_dim_products
     description: "Standardized product dimension enriched with category data."
@@ -84,6 +96,18 @@ models:
         description: "Indicates whether the product is an allergen."
       - name: vitality_days
         description: "Product vitality/shelf-life in days."
+      - name: valid_from
+        description: "SCD Type 2. Timestamp when this version of the record became effective."
+        tests:
+          - not_null
+      - name: valid_to
+        description: "SCD Type 2. Timestamp when this version of the record expired. Value of 9999-12-31 indicates current record."
+        tests:
+          - not_null
+      - name: is_current
+        description: "SCD Type 2. Boolean flag indicating if this is the current version of the record."
+        tests:
+          - not_null
 
   - name: mdw_std_dim_employees
     description: "Standardized employee dimension enriched with city and country geographic data."
@@ -138,6 +162,18 @@ models:
         description: "Name of the country where the employee resides."
       - name: country_code
         description: "ISO 3166-1 alpha-2 country code."
+      - name: valid_from
+        description: "SCD Type 2. Timestamp when this version of the record became effective."
+        tests:
+          - not_null
+      - name: valid_to
+        description: "SCD Type 2. Timestamp when this version of the record expired. Value of 9999-12-31 indicates current record."
+        tests:
+          - not_null
+      - name: is_current
+        description: "SCD Type 2. Boolean flag indicating if this is the current version of the record."
+        tests:
+          - not_null
 
   - name: mdw_std_dim_date
     description: "Standardized date dimension for time-based analytics. Contains one row per day from 2018-01-01 to 2018-12-31."
