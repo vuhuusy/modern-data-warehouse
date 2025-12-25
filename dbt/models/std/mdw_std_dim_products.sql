@@ -1,7 +1,7 @@
 -- models/std/mdw_std_dim_products.sql
--- Standardized product dimension with category enrichment
--- Includes handling for missing/Unknown values with a default Unknown record
--- Unknown record (product_id = -1) ensures fact tables always have valid joins
+-- Standardized product dimension with SCD Type 2 support
+-- Sources from snapshot table to preserve historical changes
+-- Unknown record (product_sk = 0) ensures fact tables always have valid joins
 
 {{
     config(
@@ -12,30 +12,9 @@
     )
 }}
 
-with products as (
-    select
-        product_id,
-        product_name,
-        price,
-        category_id,
-        class,
-        modify_date,
-        resistant,
-        is_allergic,
-        vitality_days
-    from {{ ref('mdw_stg_products') }}
-),
-
-categories as (
-    select
-        category_id,
-        category_name
-    from {{ ref('mdw_stg_categories') }}
-),
-
 -- Unknown record for handling missing/null product references in fact tables
--- Uses -1 as deterministic surrogate key to ensure stability across runs
-unknown_record as (
+-- Uses 0 as deterministic surrogate key to ensure stability across runs
+with unknown_record as (
     select
         cast('0' as varchar) as product_sk,
         cast('0' as varchar) as product_id,
@@ -47,25 +26,49 @@ unknown_record as (
         cast(null as date) as modify_date,
         cast('Unknown' as varchar) as resistant,
         cast('Unknown' as varchar) as is_allergic,
-        cast(null as int) as vitality_days
+        cast(null as int) as vitality_days,
+        cast('1900-01-01' as timestamp) as valid_from,
+        cast('9999-12-31' as timestamp) as valid_to,
+        cast(true as boolean) as is_current
 ),
 
+-- Source from snapshot table with SCD Type 2 metadata
+snapshot_data as (
+    select
+        product_id,
+        product_name,
+        price,
+        category_id,
+        category_name,
+        class,
+        modify_date,
+        resistant,
+        is_allergic,
+        vitality_days,
+        dbt_valid_from as valid_from,
+        dbt_valid_to as valid_to,
+        case when dbt_valid_to is null then true else false end as is_current
+    from {{ ref('snp_dim_products') }}
+),
+
+-- Generate surrogate key including validity period for SCD2
 enriched as (
     select
-        {{ generate_surrogate_key(["'mdw'", 'pr.product_id']) }} as product_sk,
-        pr.product_id,
-        coalesce(pr.product_name, 'Unknown') as product_name,
-        coalesce(pr.price, cast(null as decimal(10,2))) as price,
-        coalesce(pr.category_id, cast('0' as varchar)) as category_id,
-        coalesce(ca.category_name, 'Unknown') as category_name,
-        coalesce(pr.class, 'Unknown') as class,
-        pr.modify_date,
-        coalesce(pr.resistant, 'Unknown') as resistant,
-        coalesce(pr.is_allergic, 'Unknown') as is_allergic,
-        pr.vitality_days
-    from products pr
-    left join categories ca on pr.category_id = ca.category_id
-    where pr.product_id in ('1','2')
+        {{ generate_surrogate_key(["'mdw'", 'product_id', 'cast(valid_from as varchar)']) }} as product_sk,
+        product_id,
+        product_name,
+        price,
+        category_id,
+        category_name,
+        class,
+        modify_date,
+        resistant,
+        is_allergic,
+        vitality_days,
+        valid_from,
+        coalesce(valid_to, cast('9999-12-31' as timestamp)) as valid_to,
+        is_current
+    from snapshot_data
 ),
 
 -- Combine Unknown record with enriched data
@@ -86,5 +89,8 @@ select
     modify_date,
     resistant,
     is_allergic,
-    vitality_days
+    vitality_days,
+    valid_from,
+    valid_to,
+    is_current
 from final
