@@ -6,7 +6,7 @@
 
 {{
     config(
-        target_schema='snapshots',
+        target_schema='mdw_snp',
         unique_key='employee_id',
         strategy='check',
         check_cols=['first_name', 'middle_initial', 'last_name', 'gender', 'city_id'],

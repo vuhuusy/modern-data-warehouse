@@ -6,7 +6,7 @@
 
 {{
     config(
-        target_schema='snapshots',
+        target_schema='mdw_snp',
         unique_key='product_id',
         strategy='check',
         check_cols=['product_name', 'price', 'category_id', 'class', 'resistant', 'is_allergic', 'vitality_days'],
