@@ -1,7 +1,7 @@
 -- models/std/mdw_std_dim_customers.sql
 -- Standardized customer dimension with geographic enrichment
 -- Includes handling for missing/Unknown values with a default Unknown record
--- Unknown record (customer_id = -1) ensures fact tables always have valid joins
+-- Unknown record (customer_id = 0) ensures fact tables always have valid joins
 
 {{
     config(
@@ -41,20 +41,20 @@ countries as (
 ),
 
 -- Unknown record for handling missing/null customer references in fact tables
--- Uses -1 as deterministic surrogate key to ensure stability across runs
+-- Uses 0 as deterministic surrogate key to ensure stability across runs
 unknown_record as (
     select
         cast('0' as varchar) as customer_sk,
-        cast(-1 as bigint) as customer_id,
+        cast('0' as varchar) as customer_id,
         cast('Unknown' as varchar) as first_name,
         cast('Unknown' as varchar) as middle_initial,
         cast('Unknown' as varchar) as last_name,
         cast('Unknown' as varchar) as full_name,
         cast('Unknown' as varchar) as address,
-        cast(-1 as bigint) as city_id,
+        cast('0' as varchar) as city_id,
         cast('Unknown' as varchar) as city_name,
         cast('Unknown' as varchar) as zipcode,
-        cast(-1 as bigint) as country_id,
+        cast('0' as varchar) as country_id,
         cast('Unknown' as varchar) as country_name,
         cast('Unknown' as varchar) as country_code
 ),
@@ -72,10 +72,10 @@ enriched as (
             cu.last_name, 'Unknown'
         ) as full_name,
         coalesce(cu.address, 'Unknown') as address,
-        coalesce(cu.city_id, cast(-1 as bigint)) as city_id,
+        coalesce(cu.city_id, cast('0' as varchar)) as city_id,
         coalesce(ci.city_name, 'Unknown') as city_name,
         coalesce(ci.zipcode, 'Unknown') as zipcode,
-        coalesce(ci.country_id, cast(-1 as bigint)) as country_id,
+        coalesce(ci.country_id, cast('0' as varchar)) as country_id,
         coalesce(co.country_name, 'Unknown') as country_name,
         coalesce(co.country_code, 'Unknown') as country_code
     from customers cu
