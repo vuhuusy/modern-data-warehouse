@@ -23,6 +23,7 @@ with unknown_record as (
         cast('Unknown' as varchar) as last_name,
         cast('Unknown' as varchar) as full_name,
         cast(null as date) as birth_date,
+        cast(null as integer) as age,
         cast('Unknown' as varchar) as gender,
         cast(null as date) as hire_date,
         cast('0' as varchar) as city_id,
@@ -45,6 +46,7 @@ snapshot_data as (
         last_name,
         full_name,
         birth_date,
+        age,
         gender,
         hire_date,
         city_id,
@@ -55,7 +57,7 @@ snapshot_data as (
         country_code,
         dbt_valid_from as valid_from,
         dbt_valid_to as valid_to,
-        case when dbt_valid_to is null then true else false end as is_current
+        case when dbt_valid_to = date('9999-12-31') then true else false end as is_current
     from {{ ref('snp_dim_employees') }}
 ),
 
@@ -69,6 +71,7 @@ enriched as (
         last_name,
         full_name,
         birth_date,
+        age,
         gender,
         hire_date,
         city_id,
@@ -78,7 +81,7 @@ enriched as (
         country_name,
         country_code,
         valid_from,
-        coalesce(valid_to, cast('9999-12-31' as timestamp)) as valid_to,
+        valid_to,
         is_current
     from snapshot_data
 ),
@@ -98,6 +101,7 @@ select
     last_name,
     full_name,
     birth_date,
+    age,
     gender,
     hire_date,
     city_id,
