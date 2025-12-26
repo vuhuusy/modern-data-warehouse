@@ -9,7 +9,7 @@
         target_schema='mdw_snp',
         unique_key='product_id',
         strategy='check',
-        check_cols=['product_name', 'price', 'category_id', 'class', 'resistant', 'is_allergic', 'vitality_days'],
+        check_cols=['product_name', 'price', 'category_id', 'category_name', 'class', 'resistant', 'is_allergic', 'vitality_days'],
         invalidate_hard_deletes=True
     )
 }}
