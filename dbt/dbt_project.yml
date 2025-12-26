@@ -17,7 +17,7 @@ snapshot-paths: ["snapshots"]
 
 clean-targets:
   - "target"
-  # - "dbt_packages"
+  - "dbt_packages"
 
 # Configuring models
 models:
@@ -46,16 +46,6 @@ models:
       +format: parquet
       +write_compression: snappy
       +schema: cur
-
-# Seed configurations
-seeds:
-  mdw:
-    +schema: seeds
-
-# Snapshot configurations
-snapshots:
-  mdw:
-    +schema: snapshots
 
 # Test configurations
 tests:
