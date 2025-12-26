@@ -123,13 +123,13 @@ fact_sales as (
         coalesce(e.salesperson_country, 'Unknown') as salesperson_country,
 
         -- Date dimension attributes
-        coalesce(d.date_id, 0) as date_id,
-        coalesce(d.year, 0) as sales_year,
-        coalesce(d.quarter, 0) as sales_quarter,
-        coalesce(d.month, 0) as sales_month,
-        coalesce(d.week_of_year, 0) as sales_week,
-        coalesce(d.day_of_month, 0) as sales_day,
-        coalesce(d.day_of_week, 0) as sales_day_of_week,
+        coalesce(d.date_id, '19000101') as date_id,
+        coalesce(d.year, cast(0 as bigint)) as sales_year,
+        coalesce(d.quarter, cast(0 as bigint)) as sales_quarter,
+        coalesce(d.month, cast(0 as bigint)) as sales_month,
+        coalesce(d.week_of_year, cast(0 as bigint)) as sales_week,
+        coalesce(d.day_of_month, cast(0 as bigint)) as sales_day,
+        coalesce(d.day_of_week, cast(0 as bigint)) as sales_day_of_week,
         coalesce(d.month_name, 'Unknown') as sales_month_name,
         coalesce(d.day_name, 'Unknown') as sales_day_name,
         coalesce(d.is_weekend, false) as is_weekend_sale,
@@ -137,10 +137,10 @@ fact_sales as (
         -- Measures
         coalesce(s.quantity, 0) as quantity,
         coalesce(p.price, cast(0 as decimal(10,2))) as unit_price,
-        coalesce(s.discount, cast(0 as decimal(10,2))) as discount,
-        coalesce(s.total_price, cast(0 as decimal(10,4))) as total_price,
+        coalesce(s.discount, cast(0 as decimal(10,2))) as discount_pct,
         coalesce(p.price, cast(0 as decimal(10,2))) * coalesce(s.quantity, 0) as gross_amount,
-        coalesce(s.total_price, cast(0 as decimal(10,4))) - coalesce(s.discount, cast(0 as decimal(10,2))) as net_amount,
+        coalesce(p.price, cast(0 as decimal(10,2))) * coalesce(s.quantity, 0) * coalesce(s.discount, cast(0 as decimal(10,2))) as discount_amount,
+        coalesce(p.price, cast(0 as decimal(10,2))) * coalesce(s.quantity, 0) * (1 - coalesce(s.discount, cast(0 as decimal(10,2)))) as total_price,
 
         -- Time attributes
         s.sales_at,
