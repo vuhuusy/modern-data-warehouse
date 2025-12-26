@@ -64,7 +64,7 @@ snapshot_data as (
 -- Generate surrogate key including validity period for SCD2
 enriched as (
     select
-        {{ generate_surrogate_key(["'mdw'", 'employee_id', 'cast(valid_from as varchar)']) }} as employee_sk,
+        {{ dbt_utils.generate_surrogate_key(["'mdw'", 'employee_id', 'valid_from']) }} as employee_sk,
         employee_id,
         first_name,
         middle_initial,
