@@ -74,7 +74,6 @@ employees as (
 
 dates as (
     select
-        date_sk,
         date_key,
         date_id,
         year,
@@ -95,7 +94,7 @@ fact_sales as (
         coalesce(c.customer_sk, '0') as customer_sk,
         coalesce(p.product_sk, '0') as product_sk,
         coalesce(e.employee_sk, '0') as employee_sk,
-        coalesce(d.date_sk, '0') as date_sk,
+        coalesce(d.date_key, date '1900-01-01') as date_key,
 
         -- Transaction identifiers
         s.sales_id,
@@ -115,7 +114,7 @@ fact_sales as (
         coalesce(p.category_name, 'Unknown') as category_name,
         coalesce(p.class, 'Unknown') as product_class,
         coalesce(p.is_allergic, 'Unknown') as product_is_allergic,
-        p.vitality_days as product_vitality_days,
+        coalesce(p.vitality_days, 0) as product_vitality_days,
 
         -- Salesperson/Employee dimension (natural key + attributes)
         coalesce(s.salesperson_id, '0') as salesperson_id,
