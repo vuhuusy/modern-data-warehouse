@@ -1,7 +1,7 @@
 -- Amazon Athena external tables for Grocery Sales Database
 -- Assumptions:
 -- - Database/schema: mdw_raw
--- - S3 object paths: s3://mdw-dev-data-lake/grocery-sales/raw/<table_name>/ (directory/prefix)
+-- - S3 object paths: s3://mdw-dev-data-lake/grocery-sales/mdw_raw/<table_name>/ (directory/prefix)
 -- - CSV includes a header row (skipped via TBLPROPERTIES)
 -- - CSV fields may contain commas and are enclosed in double quotes
 -- - Datetime format: yyyy-MM-dd HH:mm:ss.SSS
@@ -20,7 +20,7 @@ WITH SERDEPROPERTIES (
   'escapeChar' = '\\'
 )
 STORED AS TEXTFILE
-LOCATION 's3://mdw-dev-data-lake/grocery-sales/raw/categories/'
+LOCATION 's3://mdw-dev-data-lake/grocery-sales/mdw_raw/categories/'
 TBLPROPERTIES (
   'skip.header.line.count' = '1'
 );
@@ -37,7 +37,7 @@ WITH SERDEPROPERTIES (
   'escapeChar' = '\\'
 )
 STORED AS TEXTFILE
-LOCATION 's3://mdw-dev-data-lake/grocery-sales/raw/countries/'
+LOCATION 's3://mdw-dev-data-lake/grocery-sales/mdw_raw/countries/'
 TBLPROPERTIES (
   'skip.header.line.count' = '1'
 );
@@ -55,7 +55,7 @@ WITH SERDEPROPERTIES (
   'escapeChar' = '\\'
 )
 STORED AS TEXTFILE
-LOCATION 's3://mdw-dev-data-lake/grocery-sales/raw/cities/'
+LOCATION 's3://mdw-dev-data-lake/grocery-sales/mdw_raw/cities/'
 TBLPROPERTIES (
   'skip.header.line.count' = '1'
 );
@@ -75,7 +75,7 @@ WITH SERDEPROPERTIES (
   'escapeChar' = '\\'
 )
 STORED AS TEXTFILE
-LOCATION 's3://mdw-dev-data-lake/grocery-sales/raw/customers/'
+LOCATION 's3://mdw-dev-data-lake/grocery-sales/mdw_raw/customers/'
 TBLPROPERTIES (
   'skip.header.line.count' = '1'
 );
@@ -97,7 +97,7 @@ WITH SERDEPROPERTIES (
   'escapeChar' = '\\'
 )
 STORED AS TEXTFILE
-LOCATION 's3://mdw-dev-data-lake/grocery-sales/raw/employees/'
+LOCATION 's3://mdw-dev-data-lake/grocery-sales/mdw_raw/employees/'
 TBLPROPERTIES (
   'skip.header.line.count' = '1'
 );
@@ -120,12 +120,12 @@ WITH SERDEPROPERTIES (
   'escapeChar' = '\\'
 )
 STORED AS TEXTFILE
-LOCATION 's3://mdw-dev-data-lake/grocery-sales/raw/products/'
+LOCATION 's3://mdw-dev-data-lake/grocery-sales/mdw_raw/products/'
 TBLPROPERTIES (
   'skip.header.line.count' = '1'
 );
 
-CREATE EXTERNAL TABLE IF NOT EXISTS mdw_raw.sales (
+CREATE EXTERNAL TABLE IF NOT EXISTS mdw_raw.sales_tmp (
   salesid STRING,
   salespersonid STRING,
   customerid STRING,
@@ -143,7 +143,7 @@ WITH SERDEPROPERTIES (
   'escapeChar' = '\\'
 )
 STORED AS TEXTFILE
-LOCATION 's3://mdw-dev-data-lake/grocery-sales/raw/sales/'
+LOCATION 's3://mdw-dev-data-lake/grocery-sales/mdw_raw/sales_tmp/'
 TBLPROPERTIES (
   'skip.header.line.count' = '1'
 );
@@ -152,7 +152,7 @@ CREATE TABLE mdw_raw.sales
 WITH (
     format = 'PARQUET',
     parquet_compression = 'SNAPPY',
-    external_location = 's3://mdw-dev-data-lake/grocery-sales/raw/sales/',
+    external_location = 's3://mdw-dev-data-lake/grocery-sales/mdw_raw/sales/',
     partitioned_by = ARRAY['partition']
 ) AS
 WITH cleaned AS (
