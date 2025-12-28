@@ -153,15 +153,15 @@ fact_sales as (
     left join products p
         on s.product_id = p.product_id
         and s.sales_at >= p.valid_from
-        and s.sales_at < p.valid_to
+        and (s.sales_at < p.valid_to or p.valid_to is null)
     left join customers c
         on s.customer_id = c.customer_id
         and s.sales_at >= c.valid_from
-        and s.sales_at < c.valid_to
+        and (s.sales_at < c.valid_to or c.valid_to is null)
     left join employees e
         on s.salesperson_id = e.employee_id
         and s.sales_at >= e.valid_from
-        and s.sales_at < e.valid_to
+        and (s.sales_at < e.valid_to or e.valid_to is null)
     left join dates d
         on date(s.sales_at) = d.date_key
 )
