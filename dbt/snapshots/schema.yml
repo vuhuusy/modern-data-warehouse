@@ -2,8 +2,6 @@ version: 2
 
 snapshots:
   - name: snp_dim_products
-    config:
-      dbt_valid_to_current: "date(date_parse('31 Dec 9999', '%d %b %Y'))"
     description: "SCD Type 2 snapshot for product dimension. Tracks historical changes to product attributes."
     columns:
       - name: product_id
@@ -43,8 +41,6 @@ snapshots:
         description: "Timestamp when this version expired. NULL indicates current record."
 
   - name: snp_dim_customers
-    config:
-      dbt_valid_to_current: "date(date_parse('31 Dec 9999', '%d %b %Y'))"
     description: "SCD Type 2 snapshot for customer dimension. Tracks historical changes to customer attributes."
     columns:
       - name: customer_id
@@ -88,8 +84,6 @@ snapshots:
         description: "Timestamp when this version expired. NULL indicates current record."
 
   - name: snp_dim_employees
-    config:
-      dbt_valid_to_current: "date(date_parse('31 Dec 9999', '%d %b %Y'))"
     description: "SCD Type 2 snapshot for employee dimension. Tracks historical changes to employee attributes."
     columns:
       - name: employee_id
