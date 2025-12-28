@@ -140,6 +140,8 @@ models:
         description: "Date of birth of the employee."
         tests:
           - not_null
+      - name: age
+        description: "Derived column. Age of the employee in years calculated as of 2018-12-31."
       - name: gender
         description: "Gender of the employee."
         tests:
@@ -364,18 +366,18 @@ models:
           - not_null
       - name: unit_price
         description: "Price per unit of the product at transaction time."
-      - name: discount
-        description: "Discount amount applied to the sale. Defaults to 0 if null."
-        tests:
-          - not_null
-      - name: total_price
-        description: "Final sale price after discounts."
+      - name: discount_pct
+        description: "Discount percentage applied to the sale. Defaults to 0 if null."
         tests:
           - not_null
       - name: gross_amount
         description: "Calculated gross amount (unit_price * quantity) before discounts."
-      - name: net_amount
-        description: "Calculated net amount (total_price - discount)."
+      - name: discount_amount
+        description: "Calculated discount amount in currency (gross_amount * discount_pct / 100)."
+      - name: total_price
+        description: "Final sale price after discounts (gross_amount - discount_amount)."
+        tests:
+          - not_null
       - name: sales_at
         description: "Timestamp of the sale transaction."
         tests:

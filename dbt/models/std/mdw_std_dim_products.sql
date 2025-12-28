@@ -47,14 +47,14 @@ snapshot_data as (
         vitality_days,
         dbt_valid_from as valid_from,
         dbt_valid_to as valid_to,
-        case when dbt_valid_to is null then true else false end as is_current
+        case when dbt_valid_to = date('9999-12-31') then true else false end as is_current
     from {{ ref('snp_dim_products') }}
 ),
 
 -- Generate surrogate key including validity period for SCD2
 enriched as (
     select
-        {{ generate_surrogate_key(["'mdw'", 'product_id', 'cast(valid_from as varchar)']) }} as product_sk,
+        {{ dbt_utils.generate_surrogate_key(["'mdw'", 'product_id', 'valid_from']) }} as product_sk,
         product_id,
         product_name,
         price,
@@ -66,7 +66,7 @@ enriched as (
         is_allergic,
         vitality_days,
         valid_from,
-        coalesce(valid_to, cast('9999-12-31' as timestamp)) as valid_to,
+        valid_to,
         is_current
     from snapshot_data
 ),

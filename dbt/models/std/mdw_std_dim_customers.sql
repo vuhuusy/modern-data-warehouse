@@ -51,14 +51,14 @@ snapshot_data as (
         country_code,
         dbt_valid_from as valid_from,
         dbt_valid_to as valid_to,
-        case when dbt_valid_to is null then true else false end as is_current
+        case when dbt_valid_to = date('9999-12-31') then true else false end as is_current
     from {{ ref('snp_dim_customers') }}
 ),
 
 -- Generate surrogate key including validity period for SCD2
 enriched as (
     select
-        {{ generate_surrogate_key(["'mdw'", 'customer_id', 'cast(valid_from as varchar)']) }} as customer_sk,
+        {{ dbt_utils.generate_surrogate_key(["'mdw'", 'customer_id', 'valid_from']) }} as customer_sk,
         customer_id,
         first_name,
         middle_initial,
@@ -72,7 +72,7 @@ enriched as (
         country_name,
         country_code,
         valid_from,
-        coalesce(valid_to, cast('9999-12-31' as timestamp)) as valid_to,
+        valid_to,
         is_current
     from snapshot_data
 ),

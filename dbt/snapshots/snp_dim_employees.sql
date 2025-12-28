@@ -6,10 +6,10 @@
 
 {{
     config(
-        target_schema='snapshots',
+        target_schema='mdw_snp',
         unique_key='employee_id',
         strategy='check',
-        check_cols=['first_name', 'middle_initial', 'last_name', 'gender', 'city_id'],
+        check_cols=['city_id', 'city_name', 'zipcode', 'country_id', 'country_name', 'country_code'],
         invalidate_hard_deletes=True
     )
 }}
@@ -56,6 +56,7 @@ enriched as (
             em.last_name, 'Unknown'
         ) as full_name,
         em.birth_date,
+        date_diff('year', em.birth_date, date('2018-12-31')) as age,
         coalesce(em.gender, 'Unknown') as gender,
         em.hire_date,
         coalesce(em.city_id, cast('0' as varchar)) as city_id,

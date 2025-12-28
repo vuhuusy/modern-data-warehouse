@@ -100,6 +100,8 @@ snapshots:
         description: "Derived column. Concatenation of first_name and last_name."
       - name: birth_date
         description: "Date of birth of the employee."
+      - name: age
+        description: "Derived column. Age of the employee in years calculated as of 2018-12-31."
       - name: gender
         description: "Gender of the employee."
       - name: hire_date

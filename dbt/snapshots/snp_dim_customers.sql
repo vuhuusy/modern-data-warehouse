@@ -9,7 +9,7 @@
         target_schema='mdw_snp',
         unique_key='customer_id',
         strategy='check',
-        check_cols=['first_name', 'middle_initial', 'last_name', 'address', 'city_id', 'city_name', 'zipcode', 'country_id', 'country_name', 'country_code'],
+        check_cols=['address', 'city_id', 'city_name', 'zipcode', 'country_id', 'country_name', 'country_code'],
         invalidate_hard_deletes=True
     )
 }}
