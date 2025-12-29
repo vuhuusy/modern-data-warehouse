@@ -59,10 +59,10 @@ enriched as (
         date_diff('year', em.birth_date, date('2018-12-31')) as age,
         coalesce(em.gender, 'Unknown') as gender,
         em.hire_date,
-        coalesce(em.city_id, cast('0' as varchar)) as city_id,
+        coalesce(em.city_id, 'CITY000000') as city_id,
         coalesce(ci.city_name, 'Unknown') as city_name,
         coalesce(ci.zipcode, 'Unknown') as zipcode,
-        coalesce(ci.country_id, cast('0' as varchar)) as country_id,
+        coalesce(ci.country_id, 'COUNTRY000000') as country_id,
         coalesce(co.country_name, 'Unknown') as country_name,
         coalesce(co.country_code, 'Unknown') as country_code
     from employees em

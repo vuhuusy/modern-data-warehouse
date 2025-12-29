@@ -40,7 +40,7 @@ enriched as (
         pr.product_id,
         coalesce(pr.product_name, 'Unknown') as product_name,
         coalesce(pr.price, cast(null as decimal(10,2))) as price,
-        coalesce(pr.category_id, cast('0' as varchar)) as category_id,
+        coalesce(pr.category_id, 'CAT000000') as category_id,
         coalesce(ca.category_name, 'Unknown') as category_name,
         coalesce(pr.class, 'Unknown') as class,
         pr.modify_date,

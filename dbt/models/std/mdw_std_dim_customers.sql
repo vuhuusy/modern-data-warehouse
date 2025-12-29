@@ -16,17 +16,17 @@
 -- Uses 0 as deterministic surrogate key to ensure stability across runs
 with unknown_record as (
     select
-        cast('0' as varchar) as customer_sk,
-        cast('0' as varchar) as customer_id,
+        cast('SK_CUST000000' as varchar) as customer_sk,
+        cast('CUST000000' as varchar) as customer_id,
         cast('Unknown' as varchar) as first_name,
         cast('Unknown' as varchar) as middle_initial,
         cast('Unknown' as varchar) as last_name,
         cast('Unknown' as varchar) as full_name,
         cast('Unknown' as varchar) as address,
-        cast('0' as varchar) as city_id,
+        cast('CITY000000' as varchar) as city_id,
         cast('Unknown' as varchar) as city_name,
         cast('Unknown' as varchar) as zipcode,
-        cast('0' as varchar) as country_id,
+        cast('COUNTRY000000' as varchar) as country_id,
         cast('Unknown' as varchar) as country_name,
         cast('Unknown' as varchar) as country_code,
         cast('1900-01-01' as timestamp) as valid_from,
