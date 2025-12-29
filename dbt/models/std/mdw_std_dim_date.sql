@@ -16,8 +16,8 @@
 with date_spine as (
     select
         sequence(
-            date '2018-01-01',
-            date '2018-12-31',
+            date '2010-01-01',
+            date '2030-12-31',
             interval '1' day
         ) as date_array
 ),
@@ -33,50 +33,48 @@ dates as (
 -- Uses 1900-01-01 as deterministic key to ensure stability across runs
 unknown_record as (
     select
-        date '1900-01-01' as date_key,
-        cast('19000101' as varchar) as date_id,
-        cast(0 as bigint) as year,
-        cast(0 as bigint) as quarter,
-        cast(0 as bigint) as month,
-        cast(0 as bigint) as week_of_year,
-        cast(0 as bigint) as day_of_month,
-        cast(0 as bigint) as day_of_week,
-        cast(0 as bigint) as day_of_year,
-        cast('Unknown' as varchar) as year_month,
-        cast('Unknown' as varchar) as year_quarter,
-        cast('Unknown' as varchar) as month_name,
-        cast('Unknown' as varchar) as month_name_short,
-        cast('Unknown' as varchar) as day_name,
-        cast('Unknown' as varchar) as day_name_short,
-        cast(null as boolean) as is_weekend,
-        cast(null as date) as first_day_of_month,
-        cast(null as date) as last_day_of_month,
-        cast(null as date) as first_day_of_quarter,
-        cast(null as date) as first_day_of_year
+        cast('DATE000000' as varchar) as date_key,
+        cast('NA' as varchar) as year,
+        cast('NA' as varchar) as quarter,
+        cast('NA' as varchar) as month,
+        cast('NA' as varchar) as week_of_year,
+        cast('NA' as varchar) as day_of_month,
+        cast('NA' as varchar) as day_of_week,
+        cast('NA' as varchar) as day_of_year,
+        cast('NA' as varchar) as year_month,
+        cast('NA' as varchar) as year_quarter,
+        cast('NA' as varchar) as month_name,
+        cast('NA' as varchar) as month_name_short,
+        cast('NA' as varchar) as day_name,
+        cast('NA' as varchar) as day_name_short,
+        cast('NA' as varchar) as day_type,
+        cast('NA' as varchar) as first_day_of_month,
+        cast('NA' as varchar) as last_day_of_month,
+        cast('NA' as varchar) as first_day_of_quarter,
+        cast('NA' as varchar) as first_day_of_year
 ),
 
 enriched as (
     select
-        date(date_value) as date_key,
-        date_format(date_value, '%Y%m%d') as date_id,
-        year(date_value) as year,
-        quarter(date_value) as quarter,
-        month(date_value) as month,
-        week(date_value) as week_of_year,
-        day_of_month(date_value) as day_of_month,
-        day_of_week(date_value) as day_of_week,
-        day_of_year(date_value) as day_of_year,
-        date_format(date_value, '%Y-%m') as year_month,
-        date_format(date_value, '%Y-Q') || cast(quarter(date_value) as varchar) as year_quarter,
-        date_format(date_value, '%M') as month_name,
-        date_format(date_value, '%b') as month_name_short,
-        date_format(date_value, '%W') as day_name,
-        date_format(date_value, '%a') as day_name_short,
-        case when day_of_week(date_value) in (6, 7) then true else false end as is_weekend,
-        date(date_trunc('month', date_value)) as first_day_of_month,
-        date(last_day_of_month(date_value)) as last_day_of_month,
-        date(date_trunc('quarter', date_value)) as first_day_of_quarter,
-        date(date_trunc('year', date_value)) as first_day_of_year
+        cast(date_format(date_value, '%Y%m%d') as varchar) as date_key,
+        cast(year(date_value) as varchar) as year,
+        cast(quarter(date_value) as varchar) as quarter,
+        cast(month(date_value) as varchar) as month,
+        cast(week(date_value) as varchar) as week_of_year,
+        cast(day_of_month(date_value) as varchar) as day_of_month,
+        cast(day_of_week(date_value) as varchar) as day_of_week,
+        cast(day_of_year(date_value) as varchar) as day_of_year,
+        cast(date_format(date_value, '%Y-%m') as varchar) as year_month,
+        cast(date_format(date_value, '%Y-Q') || cast(quarter(date_value) as varchar) as varchar) as year_quarter,
+        cast(date_format(date_value, '%M') as varchar) as month_name,
+        cast(date_format(date_value, '%b') as varchar) as month_name_short,
+        cast(date_format(date_value, '%W') as varchar) as day_name,
+        cast(date_format(date_value, '%a') as varchar) as day_name_short,
+        cast(case when day_of_week(date_value) in (6, 7) then 'Weekend' else 'Weekday' end as varchar) as day_type,
+        cast(date_format(date_trunc('month', date_value), '%Y%m%d') as varchar) as first_day_of_month,
+        cast(date_format(last_day_of_month(date_value), '%Y%m%d') as varchar) as last_day_of_month,
+        cast(date_format(date_trunc('quarter', date_value), '%Y%m%d') as varchar) as first_day_of_quarter,
+        cast(date_format(date_trunc('year', date_value), '%Y%m%d') as varchar) as first_day_of_year
     from dates
 ),
 
@@ -89,7 +87,6 @@ final as (
 
 select
     date_key,
-    date_id,
     year,
     quarter,
     month,
@@ -103,7 +100,7 @@ select
     month_name_short,
     day_name,
     day_name_short,
-    is_weekend,
+    day_type,
     first_day_of_month,
     last_day_of_month,
     first_day_of_quarter,

@@ -16,16 +16,16 @@
 -- Uses 0 as deterministic surrogate key to ensure stability across runs
 with unknown_record as (
     select
-        cast('0' as varchar) as product_sk,
-        cast('0' as varchar) as product_id,
+        cast('SK_PROD000000' as varchar) as product_sk,
+        cast('PROD000000' as varchar) as product_id,
         cast('Unknown' as varchar) as product_name,
         cast(null as decimal(10,2)) as price,
-        cast('0' as varchar) as category_id,
+        cast('CAT000000' as varchar) as category_id,
         cast('Unknown' as varchar) as category_name,
         cast('Unknown' as varchar) as class,
         cast(null as date) as modify_date,
         cast('Unknown' as varchar) as resistant,
-        cast('Unknown' as varchar) as is_allergic,
+        cast('Unknown' as varchar) as allergic_type,
         cast(null as int) as vitality_days,
         cast('1900-01-01' as timestamp) as valid_from,
         cast('9999-12-31' as timestamp) as valid_to,
@@ -43,7 +43,11 @@ snapshot_data as (
         class,
         modify_date,
         resistant,
-        is_allergic,
+        case 
+            when upper(is_allergic) = 'TRUE' then 'Allergic'
+            when upper(is_allergic) = 'FALSE' then 'Non-Allergic'
+            else 'Unknown'
+        end as allergic_type,
         vitality_days,
         dbt_valid_from as valid_from,
         dbt_valid_to as valid_to,
@@ -63,7 +67,7 @@ enriched as (
         class,
         modify_date,
         resistant,
-        is_allergic,
+        allergic_type,
         vitality_days,
         valid_from,
         valid_to,
@@ -88,7 +92,7 @@ select
     class,
     modify_date,
     resistant,
-    is_allergic,
+    allergic_type,
     vitality_days,
     valid_from,
     valid_to,

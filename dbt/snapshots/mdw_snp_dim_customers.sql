@@ -54,10 +54,10 @@ enriched as (
             cu.last_name, 'Unknown'
         ) as full_name,
         coalesce(cu.address, 'Unknown') as address,
-        coalesce(cu.city_id, cast('0' as varchar)) as city_id,
+        coalesce(cu.city_id, 'CITY000000') as city_id,
         coalesce(ci.city_name, 'Unknown') as city_name,
         coalesce(ci.zipcode, 'Unknown') as zipcode,
-        coalesce(ci.country_id, cast('0' as varchar)) as country_id,
+        coalesce(ci.country_id, 'COUNTRY000000') as country_id,
         coalesce(co.country_name, 'Unknown') as country_name,
         coalesce(co.country_code, 'Unknown') as country_code
     from customers cu

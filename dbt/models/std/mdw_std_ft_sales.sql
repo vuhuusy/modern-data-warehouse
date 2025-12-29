@@ -62,22 +62,24 @@ dates as (
     select
         date_key
     from {{ ref('mdw_std_dim_date') }}
+    where date_key != 'DATE000000'  -- Exclude unknown record for join
 ),
 
 times as (
     select
         time_key
     from {{ ref('mdw_std_dim_time') }}
+    where time_key != 'TIME000000'  -- Exclude unknown record for join
 ),
 
 fact_sales as (
     select
         -- Surrogate keys (FK to dimensions for star schema joins)
-        coalesce(c.customer_sk, '0') as customer_sk,
-        coalesce(p.product_sk, '0') as product_sk,
-        coalesce(e.employee_sk, '0') as employee_sk,
-        coalesce(d.date_key, date '1900-01-01') as date_key,
-        coalesce(t.time_key, '99:99:99') as time_key,
+        coalesce(c.customer_sk, 'SK_CUST000000') as customer_sk,
+        coalesce(p.product_sk, 'SK_PROD000000') as product_sk,
+        coalesce(e.employee_sk, 'SK_EMP000000') as employee_sk,
+        coalesce(d.date_key, 'DATE000000') as date_key,
+        coalesce(t.time_key, 'TIME000000') as time_key,
 
         -- Degenerate dimensions (transaction-level identifiers)
         s.sales_id,
@@ -108,7 +110,7 @@ fact_sales as (
         and s.sales_at >= e.valid_from
         and (s.sales_at < e.valid_to or e.valid_to is null)
     left join dates d
-        on date(s.sales_at) = d.date_key
+        on date_format(s.sales_at, '%Y%m%d') = d.date_key
     left join times t
         on date_format(s.sales_at, '%H:%i:00') = t.time_key
 )

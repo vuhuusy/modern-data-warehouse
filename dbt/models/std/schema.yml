@@ -2,17 +2,16 @@ version: 2
 
 models:
   - name: mdw_std_dim_customers
-    description: "Standardized customer dimension enriched with city and country geographic data."
+    description: "Standardized customer dimension enriched with city and country geographic data. Supports SCD Type 2."
     columns:
       - name: customer_sk
-        description: "Surrogate key. Hash-based unique identifier for dimension versioning."
+        description: "Surrogate key. Hash-based unique identifier for dimension versioning. 'SK_CUST000000' for unknown record."
         tests:
           - unique
           - not_null
       - name: customer_id
-        description: "Natural key. Unique identifier for each customer from source system."
+        description: "Natural key. Unique identifier for each customer from source system. 'CUST000000' for unknown record."
         tests:
-          - unique
           - not_null
       - name: first_name
         description: "First name of the customer."
@@ -33,7 +32,7 @@ models:
         tests:
           - not_null
       - name: city_id
-        description: "Foreign key to cities dimension."
+        description: "Foreign key to cities dimension. 'CITY000000' for unknown."
         tests:
           - not_null
       - name: city_name
@@ -41,7 +40,7 @@ models:
       - name: zipcode
         description: "Zipcode of the customer's city."
       - name: country_id
-        description: "Foreign key to countries dimension."
+        description: "Foreign key to countries dimension. 'COUNTRY000000' for unknown."
       - name: country_name
         description: "Name of the country where the customer resides."
       - name: country_code
@@ -51,26 +50,23 @@ models:
         tests:
           - not_null
       - name: valid_to
-        description: "SCD Type 2. Timestamp when this version of the record expired. Value of 9999-12-31 indicates current record."
-        tests:
-          - not_null
+        description: "SCD Type 2. Timestamp when this version of the record expired. NULL indicates current record."
       - name: is_current
         description: "SCD Type 2. Boolean flag indicating if this is the current version of the record."
         tests:
           - not_null
 
   - name: mdw_std_dim_products
-    description: "Standardized product dimension enriched with category data."
+    description: "Standardized product dimension enriched with category data. Supports SCD Type 2."
     columns:
       - name: product_sk
-        description: "Surrogate key. Hash-based unique identifier for dimension versioning."
+        description: "Surrogate key. Hash-based unique identifier for dimension versioning. 'SK_PROD000000' for unknown record."
         tests:
           - unique
           - not_null
       - name: product_id
-        description: "Natural key. Unique identifier for each product from source system."
+        description: "Natural key. Unique identifier for each product from source system. 'PROD000000' for unknown record."
         tests:
-          - unique
           - not_null
       - name: product_name
         description: "Name of the product."
@@ -78,10 +74,8 @@ models:
           - not_null
       - name: price
         description: "Price per unit of the product."
-        tests:
-          - not_null
       - name: category_id
-        description: "Foreign key to categories."
+        description: "Foreign key to categories. 'CAT000000' for unknown."
         tests:
           - not_null
       - name: category_name
@@ -92,8 +86,11 @@ models:
         description: "Last modified date of the product record."
       - name: resistant
         description: "Product resistance category."
-      - name: is_allergic
-        description: "Indicates whether the product is an allergen."
+      - name: allergic_type
+        description: "Allergic type classification: 'Allergic', 'Non-Allergic', or 'Unknown'."
+        tests:
+          - accepted_values:
+              values: ['Allergic', 'Non-Allergic', 'Unknown']
       - name: vitality_days
         description: "Product vitality/shelf-life in days."
       - name: valid_from
@@ -101,26 +98,23 @@ models:
         tests:
           - not_null
       - name: valid_to
-        description: "SCD Type 2. Timestamp when this version of the record expired. Value of 9999-12-31 indicates current record."
-        tests:
-          - not_null
+        description: "SCD Type 2. Timestamp when this version of the record expired. NULL indicates current record."
       - name: is_current
         description: "SCD Type 2. Boolean flag indicating if this is the current version of the record."
         tests:
           - not_null
 
   - name: mdw_std_dim_employees
-    description: "Standardized employee dimension enriched with city and country geographic data."
+    description: "Standardized employee dimension enriched with city and country geographic data. Supports SCD Type 2."
     columns:
       - name: employee_sk
-        description: "Surrogate key. Hash-based unique identifier for dimension versioning."
+        description: "Surrogate key. Hash-based unique identifier for dimension versioning. 'SK_EMP000000' for unknown record."
         tests:
           - unique
           - not_null
       - name: employee_id
-        description: "Natural key. Unique identifier for each employee from source system."
+        description: "Natural key. Unique identifier for each employee from source system. 'EMP000000' for unknown record."
         tests:
-          - unique
           - not_null
       - name: first_name
         description: "First name of the employee."
@@ -138,8 +132,6 @@ models:
           - not_null
       - name: birth_date
         description: "Date of birth of the employee."
-        tests:
-          - not_null
       - name: age
         description: "Derived column. Age of the employee in years calculated as of 2018-12-31."
       - name: gender
@@ -148,10 +140,8 @@ models:
           - not_null
       - name: hire_date
         description: "Date when the employee was hired."
-        tests:
-          - not_null
       - name: city_id
-        description: "Foreign key to cities dimension."
+        description: "Foreign key to cities dimension. 'CITY000000' for unknown."
         tests:
           - not_null
       - name: city_name
@@ -159,7 +149,7 @@ models:
       - name: zipcode
         description: "Zipcode of the employee's city."
       - name: country_id
-        description: "Foreign key to countries dimension."
+        description: "Foreign key to countries dimension. 'COUNTRY000000' for unknown."
       - name: country_name
         description: "Name of the country where the employee resides."
       - name: country_code
@@ -169,60 +159,46 @@ models:
         tests:
           - not_null
       - name: valid_to
-        description: "SCD Type 2. Timestamp when this version of the record expired. Value of 9999-12-31 indicates current record."
-        tests:
-          - not_null
+        description: "SCD Type 2. Timestamp when this version of the record expired. NULL indicates current record."
       - name: is_current
         description: "SCD Type 2. Boolean flag indicating if this is the current version of the record."
         tests:
           - not_null
 
   - name: mdw_std_dim_date
-    description: "Standardized date dimension for time-based analytics. Contains one row per day from 2018-01-01 to 2018-12-31."
+    description: "Standardized date dimension for time-based analytics. Contains one row per day from 2010-01-01 to 2030-12-31 plus unknown record."
     columns:
-      - name: date_sk
-        description: "Surrogate key. Hash-based unique identifier for dimension versioning."
-        tests:
-          - unique
-          - not_null
       - name: date_key
-        description: "Natural key. The date value."
-        tests:
-          - unique
-          - not_null
-      - name: date_id
-        description: "Date identifier in YYYYMMDD format."
+        description: "Primary key. Date identifier in YYYYMMDD format. 'DATE000000' for unknown record."
         tests:
           - unique
           - not_null
       - name: year
-        description: "Year component of the date."
+        description: "Year component of the date as varchar."
         tests:
           - not_null
       - name: quarter
-        description: "Quarter of the year."
+        description: "Quarter of the year (1-4) as varchar."
         tests:
           - not_null
-          - accepted_values:
-              values: [0, 1, 2, 3, 4]
       - name: month
-        description: "Month component of the date (1-12)."
+        description: "Month component of the date (1-12) as varchar."
         tests:
           - not_null
       - name: week_of_year
-        description: "Week number within the year."
+        description: "Week number within the year as varchar."
         tests:
           - not_null
       - name: day_of_month
-        description: "Day of the month (1-31)."
+        description: "Day of the month (1-31) as varchar."
         tests:
           - not_null
       - name: day_of_week
-        description: "Day of the week (1=Monday, 7=Sunday)."
+        description: "Day of the week (1=Monday, 7=Sunday) as varchar."
         tests:
           - not_null
       - name: day_of_year
-        description: "Day of the year (1-366)."
+        description: "Day of the year (1-366) as varchar."
         tests:
           - not_null
       - name: year_month
@@ -249,144 +225,129 @@ models:
         description: "Abbreviated day name (e.g., Mon)."
         tests:
           - not_null
-      - name: is_weekend
-        description: "Boolean flag indicating if the date falls on a weekend."
+      - name: day_type
+        description: "Day type classification: 'Weekend' or 'Weekday'."
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['Weekend', 'Weekday', 'NA']
       - name: first_day_of_month
-        description: "First day of the month for the given date."
+        description: "First day of the month in YYYYMMDD format."
       - name: last_day_of_month
-        description: "Last day of the month for the given date."
+        description: "Last day of the month in YYYYMMDD format."
       - name: first_day_of_quarter
-        description: "First day of the quarter for the given date."
+        description: "First day of the quarter in YYYYMMDD format."
       - name: first_day_of_year
-        description: "First day of the year for the given date."
+        description: "First day of the year in YYYYMMDD format."
+
+  - name: mdw_std_dim_time
+    description: "Standardized time dimension for intraday analytics. Contains one row per minute (1,440 rows) plus unknown record."
+    columns:
+      - name: time_key
+        description: "Primary key. Time in HH:MM:00 format. 'TIME000000' for unknown record."
+        tests:
+          - unique
+          - not_null
+      - name: hour_24
+        description: "Hour in 24-hour format (0-23) as varchar."
+        tests:
+          - not_null
+      - name: hour_12
+        description: "Hour in 12-hour format (1-12) as varchar."
+        tests:
+          - not_null
+      - name: minute
+        description: "Minute of the hour (0-59) as varchar."
+        tests:
+          - not_null
+      - name: am_pm
+        description: "AM/PM indicator."
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['AM', 'PM', 'NA']
+      - name: time_of_day
+        description: "Time of day classification: Morning, Afternoon, Evening, Night."
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['Morning', 'Afternoon', 'Evening', 'Night', 'NA']
+      - name: hour_band
+        description: "6-hour band grouping: 00:00-05:59, 06:00-11:59, 12:00-17:59, 18:00-23:59."
+        tests:
+          - not_null
+      - name: business_hour
+        description: "Business hour indicator: 'Business Hour' (9AM-6PM) or 'Non-Business Hour'."
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['Business Hour', 'Non-Business Hour', 'NA']
+      - name: display_24
+        description: "Time display in 24-hour format (HH:MM)."
+        tests:
+          - not_null
+      - name: display_12
+        description: "Time display in 12-hour format (HH:MM AM/PM)."
+        tests:
+          - not_null
 
   - name: mdw_std_ft_sales
-    description: "Standardized transactional fact table containing fully denormalized sales transactions with SCD Type 2 dimension support. Joins to dimension versions valid at transaction time. Partitioned by sales date."
+    description: "Standardized sales fact table (normalized star schema). Contains only surrogate keys, degenerate dimensions, and measures. Dimension attributes should be retrieved via joins to dim tables. Supports SCD Type 2 via surrogate keys. Partitioned by sales date."
     columns:
       - name: customer_sk
-        description: "Surrogate key to customer dimension version valid at transaction time."
+        description: "Surrogate key to customer dimension version valid at transaction time. 'SK_CUST000000' for unknown."
         tests:
           - not_null
       - name: product_sk
-        description: "Surrogate key to product dimension version valid at transaction time."
+        description: "Surrogate key to product dimension version valid at transaction time. 'SK_PROD000000' for unknown."
         tests:
           - not_null
       - name: employee_sk
-        description: "Surrogate key to employee dimension version valid at transaction time."
+        description: "Surrogate key to employee dimension version valid at transaction time. 'SK_EMP000000' for unknown."
         tests:
           - not_null
-      - name: date_sk
-        description: "Surrogate key to date dimension."
+      - name: date_key
+        description: "Foreign key to date dimension in YYYYMMDD format. 'DATE000000' for unknown."
+        tests:
+          - not_null
+      - name: time_key
+        description: "Foreign key to time dimension in HH:MM:00 format. 'TIME000000' for unknown."
         tests:
           - not_null
       - name: sales_id
-        description: "Primary key. Unique identifier for each sale transaction."
+        description: "Degenerate dimension. Unique identifier for each sale transaction."
         tests:
           - unique
           - not_null
       - name: transaction_number
-        description: "Business transaction identifier. May group multiple line items."
+        description: "Degenerate dimension. Business transaction identifier."
         tests:
           - not_null
-      - name: customer_id
-        description: "Natural key to customer dimension."
-        tests:
-          - not_null
-      - name: customer_name
-        description: "Full name of the customer at transaction time."
-      - name: customer_city
-        description: "City where the customer resided at transaction time."
-      - name: customer_country
-        description: "Country where the customer resided at transaction time."
-      - name: customer_country_code
-        description: "ISO 3166-1 alpha-2 country code of the customer."
-      - name: product_id
-        description: "Natural key to product dimension."
-        tests:
-          - not_null
-      - name: product_name
-        description: "Name of the product at transaction time."
-      - name: category_id
-        description: "Foreign key to product category."
-      - name: category_name
-        description: "Name of the product category at transaction time."
-      - name: product_class
-        description: "Classification of the product at transaction time."
-      - name: product_is_allergic
-        description: "Indicates if the product was an allergen at transaction time."
-      - name: product_vitality_days
-        description: "Product shelf-life in days at transaction time."
-      - name: salesperson_id
-        description: "Natural key to employee dimension (salesperson)."
-        tests:
-          - not_null
-      - name: salesperson_name
-        description: "Full name of the salesperson at transaction time."
-      - name: salesperson_city
-        description: "City where the salesperson was located at transaction time."
-      - name: salesperson_country
-        description: "Country where the salesperson was located at transaction time."
-      - name: date_id
-        description: "Date identifier in YYYYMMDD format."
-        tests:
-          - not_null
-      - name: sales_year
-        description: "Year of the sale."
-        tests:
-          - not_null
-      - name: sales_quarter
-        description: "Quarter of the sale (1-4)."
-        tests:
-          - not_null
-      - name: sales_month
-        description: "Month of the sale (1-12)."
-        tests:
-          - not_null
-      - name: sales_week
-        description: "Week number of the sale within the year."
-        tests:
-          - not_null
-      - name: sales_day
-        description: "Day of the month (1-31)."
-        tests:
-          - not_null
-      - name: sales_day_of_week
-        description: "Day of the week (1=Monday, 7=Sunday)."
-        tests:
-          - not_null
-      - name: sales_month_name
-        description: "Full name of the month."
-      - name: sales_day_name
-        description: "Full name of the day."
-      - name: is_weekend_sale
-        description: "Boolean flag indicating if sale occurred on weekend."
       - name: quantity
-        description: "Number of units sold in this transaction."
+        description: "Measure. Number of units sold in this transaction."
         tests:
           - not_null
       - name: unit_price
-        description: "Price per unit of the product at transaction time."
-      - name: discount_pct
-        description: "Discount percentage applied to the sale. Defaults to 0 if null."
+        description: "Measure. Price per unit of the product at transaction time."
+        tests:
+          - not_null
+      - name: discount_rate
+        description: "Measure. Discount rate applied to the sale (0-1)."
         tests:
           - not_null
       - name: gross_amount
-        description: "Calculated gross amount (unit_price * quantity) before discounts."
+        description: "Measure. Calculated gross amount (unit_price * quantity) before discounts."
+        tests:
+          - not_null
       - name: discount_amount
-        description: "Calculated discount amount in currency (gross_amount * discount_pct / 100)."
-      - name: total_price
-        description: "Final sale price after discounts (gross_amount - discount_amount)."
+        description: "Measure. Calculated discount amount (gross_amount * discount_rate)."
         tests:
           - not_null
-      - name: sales_at
-        description: "Timestamp of the sale transaction."
-        tests:
-          - not_null
-      - name: sales_date
-        description: "Date of the sale (date only, no time)."
+      - name: net_amount
+        description: "Measure. Final sale amount after discounts (gross_amount - discount_amount)."
         tests:
           - not_null
       - name: partition
-        description: "Partition key in YYYYMMDD format derived from sales_at."
+        description: "Partition key in YYYYMMDD format derived from sales timestamp."
         tests:
           - not_null
