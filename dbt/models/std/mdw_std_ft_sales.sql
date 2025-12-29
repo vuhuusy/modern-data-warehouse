@@ -1,6 +1,8 @@
 -- models/std/mdw_std_ft_sales.sql
--- Standardized sales fact table with denormalized dimensions
--- Supports SCD Type 2: joins to dimension version valid at transaction time
+-- Standardized sales fact table (normalized star schema)
+-- Contains only surrogate keys, natural keys, degenerate dimensions, and measures
+-- Dimension attributes should be retrieved via joins to dim tables
+-- Supports SCD Type 2: surrogate keys point to dimension version valid at transaction time
 -- Partitioned by sales date for optimal query performance
 
 {{
@@ -27,21 +29,14 @@ with sales as (
     from {{ ref('mdw_stg_sales') }}
 ),
 
--- Get dimension records with SCD2 validity periods
+-- Get dimension surrogate keys with SCD2 validity periods
 products as (
     select
         product_sk,
         product_id,
-        product_name,
         price,
-        category_id,
-        category_name,
-        class,
-        is_allergic,
-        vitality_days,
         valid_from,
-        valid_to,
-        is_current
+        valid_to
     from {{ ref('mdw_std_dim_products') }}
 ),
 
@@ -49,13 +44,8 @@ customers as (
     select
         customer_sk,
         customer_id,
-        full_name as customer_name,
-        city_name as customer_city,
-        country_name as customer_country,
-        country_code as customer_country_code,
         valid_from,
-        valid_to,
-        is_current
+        valid_to
     from {{ ref('mdw_std_dim_customers') }}
 ),
 
@@ -63,93 +53,48 @@ employees as (
     select
         employee_sk,
         employee_id,
-        full_name as salesperson_name,
-        city_name as salesperson_city,
-        country_name as salesperson_country,
         valid_from,
-        valid_to,
-        is_current
+        valid_to
     from {{ ref('mdw_std_dim_employees') }}
 ),
 
 dates as (
     select
-        date_key,
-        date_id,
-        year,
-        quarter,
-        month,
-        week_of_year,
-        day_of_month,
-        day_of_week,
-        month_name,
-        day_name,
-        is_weekend
+        date_key
     from {{ ref('mdw_std_dim_date') }}
+),
+
+times as (
+    select
+        time_key
+    from {{ ref('mdw_std_dim_time') }}
 ),
 
 fact_sales as (
     select
-        -- Surrogate keys for dimension relationships
+        -- Surrogate keys (FK to dimensions for star schema joins)
         coalesce(c.customer_sk, '0') as customer_sk,
         coalesce(p.product_sk, '0') as product_sk,
         coalesce(e.employee_sk, '0') as employee_sk,
         coalesce(d.date_key, date '1900-01-01') as date_key,
+        coalesce(t.time_key, '99:99:99') as time_key,
 
-        -- Transaction identifiers
+        -- Degenerate dimensions (transaction-level identifiers)
         s.sales_id,
         s.transaction_number,
-
-        -- Customer dimension (natural key + attributes)
-        coalesce(s.customer_id, '0') as customer_id,
-        coalesce(c.customer_name, 'Unknown') as customer_name,
-        coalesce(c.customer_city, 'Unknown') as customer_city,
-        coalesce(c.customer_country, 'Unknown') as customer_country,
-        coalesce(c.customer_country_code, 'Unknown') as customer_country_code,
-
-        -- Product dimension (natural key + attributes)
-        coalesce(s.product_id, '0') as product_id,
-        coalesce(p.product_name, 'Unknown') as product_name,
-        coalesce(p.category_id, '0') as category_id,
-        coalesce(p.category_name, 'Unknown') as category_name,
-        coalesce(p.class, 'Unknown') as product_class,
-        coalesce(p.is_allergic, 'Unknown') as product_is_allergic,
-        coalesce(p.vitality_days, 0) as product_vitality_days,
-
-        -- Salesperson/Employee dimension (natural key + attributes)
-        coalesce(s.salesperson_id, '0') as salesperson_id,
-        coalesce(e.salesperson_name, 'Unknown') as salesperson_name,
-        coalesce(e.salesperson_city, 'Unknown') as salesperson_city,
-        coalesce(e.salesperson_country, 'Unknown') as salesperson_country,
-
-        -- Date dimension attributes
-        coalesce(d.date_id, '19000101') as date_id,
-        coalesce(d.year, cast(0 as bigint)) as sales_year,
-        coalesce(d.quarter, cast(0 as bigint)) as sales_quarter,
-        coalesce(d.month, cast(0 as bigint)) as sales_month,
-        coalesce(d.week_of_year, cast(0 as bigint)) as sales_week,
-        coalesce(d.day_of_month, cast(0 as bigint)) as sales_day,
-        coalesce(d.day_of_week, cast(0 as bigint)) as sales_day_of_week,
-        coalesce(d.month_name, 'Unknown') as sales_month_name,
-        coalesce(d.day_name, 'Unknown') as sales_day_name,
-        coalesce(d.is_weekend, false) as is_weekend_sale,
 
         -- Measures
         coalesce(s.quantity, 0) as quantity,
         coalesce(p.price, cast(0 as decimal(10,2))) as unit_price,
-        coalesce(s.discount, cast(0 as decimal(10,2))) as discount_pct,
+        coalesce(s.discount, cast(0 as decimal(10,2))) as discount_rate,
         coalesce(p.price, cast(0 as decimal(10,2))) * coalesce(s.quantity, 0) as gross_amount,
         coalesce(p.price, cast(0 as decimal(10,2))) * coalesce(s.quantity, 0) * coalesce(s.discount, cast(0 as decimal(10,2))) as discount_amount,
-        coalesce(p.price, cast(0 as decimal(10,2))) * coalesce(s.quantity, 0) * (1 - coalesce(s.discount, cast(0 as decimal(10,2)))) as total_price,
-
-        -- Time attributes
-        s.sales_at,
-        date(s.sales_at) as sales_date,
+        coalesce(p.price, cast(0 as decimal(10,2))) * coalesce(s.quantity, 0) * (1 - coalesce(s.discount, cast(0 as decimal(10,2)))) as net_amount,
 
         -- Partition key (MUST be last)
         date_format(s.sales_at, '%Y%m%d') as partition
     from sales s
-    -- SCD Type 2 join: get dimension version valid at transaction time
+    -- SCD Type 2 join: get dimension surrogate key valid at transaction time
     left join products p
         on s.product_id = p.product_id
         and s.sales_at >= p.valid_from
@@ -164,6 +109,8 @@ fact_sales as (
         and (s.sales_at < e.valid_to or e.valid_to is null)
     left join dates d
         on date(s.sales_at) = d.date_key
+    left join times t
+        on date_format(s.sales_at, '%H:%i:00') = t.time_key
 )
 
 select * from fact_sales
