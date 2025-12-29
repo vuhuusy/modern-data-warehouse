@@ -124,6 +124,15 @@ fact_sales as (
 
         -- Date dimension attributes
         coalesce(d.date_id, '19000101') as date_id,
+        coalesce(d.year, cast(0 as bigint)) as sales_year,
+        coalesce(d.quarter, cast(0 as bigint)) as sales_quarter,
+        coalesce(d.month, cast(0 as bigint)) as sales_month,
+        coalesce(d.week_of_year, cast(0 as bigint)) as sales_week,
+        coalesce(d.day_of_month, cast(0 as bigint)) as sales_day,
+        coalesce(d.day_of_week, cast(0 as bigint)) as sales_day_of_week,
+        coalesce(d.month_name, 'Unknown') as sales_month_name,
+        coalesce(d.day_name, 'Unknown') as sales_day_name,
+        coalesce(d.is_weekend, false) as is_weekend_sale,
 
         -- Measures
         coalesce(s.quantity, 0) as quantity,
