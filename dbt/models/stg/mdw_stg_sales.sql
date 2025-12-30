@@ -1,10 +1,26 @@
 -- models/stg/mdw_stg_sales.sql
--- Staging view for sales transactions
+-- Staging table for sales transactions
 -- Cleans and type-casts raw sales data
+-- Incremental with merge for idempotent daily loads
+
+{{
+    config(
+        materialized='incremental',
+        table_type='iceberg',
+        format='parquet',
+        write_compression='snappy',
+        incremental_strategy='merge',
+        unique_key='sales_id',
+        partitioned_by=['partition'],
+        on_schema_change='fail'
+    )
+}}
 
 with source as (
     select * from {{ source('grocery', 'sales') }}
+    {% if is_incremental() %}
     where partition = '{{ var("partition") }}'
+    {% endif %}
 ),
 
 cleaned as (
