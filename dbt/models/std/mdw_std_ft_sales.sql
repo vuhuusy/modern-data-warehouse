@@ -11,7 +11,8 @@
         table_type='iceberg',
         format='parquet',
         write_compression='snappy',
-        incremental_strategy='insert_overwrite',
+        incremental_strategy='merge',
+        unique_key='sales_id',
         partitioned_by=['partition'],
         on_schema_change='fail'
     )
