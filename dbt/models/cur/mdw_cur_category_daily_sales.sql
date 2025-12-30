@@ -1,15 +1,17 @@
 -- models/cur/mdw_cur_category_daily_sales.sql
 -- Category-level daily sales metrics for category management
 -- Joins fact table with product and date dimensions for attributes
--- Enables category performance comparison and trend analysis
+-- Incremental by partition for efficient daily loads
 
 {{
     config(
-        materialized='table',
+        materialized='incremental',
         table_type='iceberg',
         format='parquet',
         write_compression='snappy',
-        partitioned_by=['partition']
+        incremental_strategy='insert_overwrite',
+        partitioned_by=['partition'],
+        on_schema_change='fail'
     )
 }}
 
@@ -24,7 +26,9 @@ with fact_sales as (
         discount_amount,
         net_amount
     from {{ ref('mdw_std_ft_sales') }}
+    {% if is_incremental() %}
     where partition = '{{ var("partition") }}'
+    {% endif %}
 ),
 
 dim_products as (
