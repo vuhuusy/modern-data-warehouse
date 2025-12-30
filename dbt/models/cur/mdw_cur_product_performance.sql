@@ -1,15 +1,18 @@
 -- models/cur/mdw_cur_product_performance.sql
 -- Product-level performance metrics aggregated by date
 -- Joins fact table with product and date dimensions for attributes
--- Enables product ranking and category analysis
+-- Incremental by partition for efficient daily loads
 
 {{
     config(
-        materialized='table',
+        materialized='incremental',
         table_type='iceberg',
         format='parquet',
         write_compression='snappy',
-        partitioned_by=['partition']
+        incremental_strategy='merge',
+        unique_key=['date_key', 'product_sk'],
+        partitioned_by=['partition'],
+        on_schema_change='fail'
     )
 }}
 
@@ -26,7 +29,9 @@ with fact_sales as (
         discount_amount,
         net_amount
     from {{ ref('mdw_std_ft_sales') }}
+    {% if is_incremental() %}
     where partition = '{{ var("partition") }}'
+    {% endif %}
 ),
 
 dim_products as (

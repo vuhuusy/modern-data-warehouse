@@ -3,15 +3,18 @@
 -- Contains only surrogate keys, natural keys, degenerate dimensions, and measures
 -- Dimension attributes should be retrieved via joins to dim tables
 -- Supports SCD Type 2: surrogate keys point to dimension version valid at transaction time
--- Partitioned by sales date for optimal query performance
+-- Incremental by partition for efficient daily loads
 
 {{
     config(
-        materialized='table',
+        materialized='incremental',
         table_type='iceberg',
         format='parquet',
         write_compression='snappy',
-        partitioned_by=['partition']
+        incremental_strategy='merge',
+        unique_key='sales_id',
+        partitioned_by=['partition'],
+        on_schema_change='fail'
     )
 }}
 
@@ -27,6 +30,9 @@ with sales as (
         sales_at,
         transaction_number
     from {{ ref('mdw_stg_sales') }}
+    {% if is_incremental() %}
+    where date_format(sales_at, '%Y%m%d') = '{{ var("partition") }}'
+    {% endif %}
 ),
 
 -- Get dimension surrogate keys with SCD2 validity periods

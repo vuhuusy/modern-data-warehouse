@@ -1,15 +1,18 @@
 -- models/cur/mdw_cur_daily_sales.sql
 -- Daily aggregated sales metrics for trend analysis
 -- Joins fact table with date dimension for date attributes
--- Partitioned by date for efficient time-series queries
+-- Incremental by partition for efficient daily loads
 
 {{
     config(
-        materialized='table',
+        materialized='incremental',
         table_type='iceberg',
         format='parquet',
         write_compression='snappy',
-        partitioned_by=['partition']
+        incremental_strategy='merge',
+        unique_key='date_key',
+        partitioned_by=['partition'],
+        on_schema_change='fail'
     )
 }}
 
@@ -27,7 +30,9 @@ with fact_sales as (
         discount_amount,
         net_amount
     from {{ ref('mdw_std_ft_sales') }}
+    {% if is_incremental() %}
     where partition = '{{ var("partition") }}'
+    {% endif %}
 ),
 
 dim_date as (
