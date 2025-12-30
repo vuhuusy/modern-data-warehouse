@@ -1,5 +1,6 @@
 -- models/cur/mdw_cur_daily_sales.sql
 -- Daily aggregated sales metrics for trend analysis
+-- Joins fact table with date dimension for date attributes
 -- Partitioned by date for efficient time-series queries
 
 {{
@@ -15,48 +16,99 @@
 with fact_sales as (
     select
         sales_id,
-        sales_date,
-        customer_id,
-        product_id,
-        category_id,
-        salesperson_id,
+        customer_sk,
+        product_sk,
+        employee_sk,
+        date_key,
         quantity,
         unit_price,
-        discount,
-        total_price,
+        discount_rate,
         gross_amount,
+        discount_amount,
         net_amount
     from {{ ref('mdw_std_ft_sales') }}
+    where partition = '{{ var("partition") }}'
+),
+
+dim_date as (
+    select
+        date_key,
+        year,
+        quarter,
+        month,
+        year_month,
+        year_quarter,
+        month_name,
+        day_name,
+        day_type
+    from {{ ref('mdw_std_dim_date') }}
 ),
 
 daily_aggregates as (
     select
-        sales_date,
+        -- Date attributes
+        f.date_key,
+        d.year,
+        d.quarter,
+        d.month,
+        d.year_month,
+        d.month_name,
+        d.day_name,
+        d.day_type,
 
         -- Transaction counts
-        count(distinct sales_id) as total_transactions,
-        count(distinct customer_id) as unique_customers,
-        count(distinct product_id) as unique_products,
-        count(distinct salesperson_id) as active_salespersons,
+        count(distinct f.sales_id) as total_transactions,
+        count(distinct f.customer_sk) as unique_customers,
+        count(distinct f.product_sk) as unique_products,
+        count(distinct f.employee_sk) as active_salespersons,
 
         -- Volume metrics
-        sum(quantity) as total_quantity_sold,
+        sum(f.quantity) as total_quantity_sold,
 
         -- Revenue metrics
-        sum(gross_amount) as gross_revenue,
-        sum(discount) as total_discounts,
-        sum(total_price) as total_revenue,
-        sum(net_amount) as net_revenue,
+        sum(f.gross_amount) as gross_revenue,
+        sum(f.discount_amount) as total_discounts,
+        sum(f.net_amount) as net_revenue,
 
         -- Average metrics
-        avg(total_price) as avg_transaction_value,
-        avg(quantity) as avg_quantity_per_transaction,
-        avg(discount) as avg_discount_per_transaction,
+        avg(f.net_amount) as avg_transaction_value,
+        avg(f.quantity) as avg_quantity_per_transaction,
+        avg(f.discount_rate) as avg_discount_rate,
 
         -- Partition key (MUST be last)
-        date_format(sales_date, '%Y%m%d') as partition
-    from fact_sales
-    group by sales_date
+        date_format(f.date_key, '%Y%m%d') as partition
+    from fact_sales f
+    left join dim_date d on f.date_key = d.date_key
+    group by
+        f.date_key,
+        d.year,
+        d.quarter,
+        d.month,
+        d.year_month,
+        d.month_name,
+        d.day_name,
+        d.day_type
 )
 
-select * from daily_aggregates
+select
+    date_key,
+    year,
+    quarter,
+    month,
+    year_month,
+    month_name,
+    day_name,
+    day_type,
+    total_transactions,
+    unique_customers,
+    unique_products,
+    active_salespersons,
+    total_quantity_sold,
+    gross_revenue,
+    total_discounts,
+    net_revenue,
+    avg_transaction_value,
+    avg_quantity_per_transaction,
+    avg_discount_rate,
+    partition
+from daily_aggregates

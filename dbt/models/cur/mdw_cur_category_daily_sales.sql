@@ -1,5 +1,6 @@
 -- models/cur/mdw_cur_category_daily_sales.sql
 -- Category-level daily sales metrics for category management
+-- Joins fact table with product and date dimensions for attributes
 -- Enables category performance comparison and trend analysis
 
 {{
@@ -15,50 +16,109 @@
 with fact_sales as (
     select
         sales_id,
-        sales_date,
-        category_id,
-        category_name,
-        product_id,
-        customer_id,
+        customer_sk,
+        product_sk,
+        date_key,
         quantity,
-        discount,
-        total_price,
         gross_amount,
+        discount_amount,
         net_amount
     from {{ ref('mdw_std_ft_sales') }}
+    where partition = '{{ var("partition") }}'
+),
+
+dim_products as (
+    select
+        product_sk,
+        product_id,
+        category_id,
+        category_name
+    from {{ ref('mdw_std_dim_products') }}
+),
+
+dim_date as (
+    select
+        date_key,
+        year,
+        quarter,
+        month,
+        year_month,
+        month_name,
+        day_name,
+        day_type
+    from {{ ref('mdw_std_dim_date') }}
 ),
 
 category_daily_metrics as (
     select
-        sales_date,
-        category_id,
-        category_name,
+        -- Date attributes
+        f.date_key,
+        d.year,
+        d.quarter,
+        d.month,
+        d.year_month,
+        d.month_name,
+        d.day_name,
+        d.day_type,
+
+        -- Category attributes
+        p.category_id,
+        p.category_name,
 
         -- Transaction metrics
-        count(distinct sales_id) as total_transactions,
-        count(distinct customer_id) as unique_customers,
-        count(distinct product_id) as unique_products_sold,
+        count(distinct f.sales_id) as total_transactions,
+        count(distinct f.customer_sk) as unique_customers,
+        count(distinct p.product_id) as unique_products_sold,
 
         -- Volume metrics
-        sum(quantity) as total_quantity_sold,
+        sum(f.quantity) as total_quantity_sold,
 
         -- Revenue metrics
-        sum(gross_amount) as gross_revenue,
-        sum(discount) as total_discounts,
-        sum(total_price) as total_revenue,
-        sum(net_amount) as net_revenue,
+        sum(f.gross_amount) as gross_revenue,
+        sum(f.discount_amount) as total_discounts,
+        sum(f.net_amount) as net_revenue,
 
         -- Average metrics
-        avg(total_price) as avg_transaction_value,
-        avg(quantity) as avg_quantity_per_transaction,
+        avg(f.net_amount) as avg_transaction_value,
+        avg(f.quantity) as avg_quantity_per_transaction,
 
         -- Partition key (MUST be last)
-        date_format(sales_date, '%Y%m%d') as partition
-    from fact_sales
+        date_format(f.date_key, '%Y%m%d') as partition
+    from fact_sales f
+    left join dim_products p on f.product_sk = p.product_sk
+    left join dim_date d on f.date_key = d.date_key
     group by
-        sales_date,
-        category_id,
-        category_name
+        f.date_key,
+        d.year,
+        d.quarter,
+        d.month,
+        d.year_month,
+        d.month_name,
+        d.day_name,
+        d.day_type,
+        p.category_id,
+        p.category_name
 )
 
-select * from category_daily_metrics
+select
+    date_key,
+    year,
+    quarter,
+    month,
+    year_month,
+    month_name,
+    day_name,
+    day_type,
+    category_id,
+    category_name,
+    total_transactions,
+    unique_customers,
+    unique_products_sold,
+    total_quantity_sold,
+    gross_revenue,
+    total_discounts,
+    net_revenue,
+    avg_transaction_value,
+    avg_quantity_per_transaction,
+    partition
+from category_daily_metrics
