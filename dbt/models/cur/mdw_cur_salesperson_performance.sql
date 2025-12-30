@@ -1,5 +1,6 @@
 -- models/cur/mdw_cur_salesperson_performance.sql
 -- Salesperson performance metrics aggregated by date
+-- Joins fact table with employee and date dimensions for attributes
 -- Enables sales team analysis and performance tracking
 
 {{
@@ -15,59 +16,137 @@
 with fact_sales as (
     select
         sales_id,
-        sales_date,
-        salesperson_id,
-        salesperson_name,
-        salesperson_city,
-        salesperson_country,
-        customer_id,
-        product_id,
-        category_id,
+        customer_sk,
+        product_sk,
+        employee_sk,
+        date_key,
         quantity,
-        discount,
-        total_price,
+        discount_rate,
         gross_amount,
+        discount_amount,
         net_amount
     from {{ ref('mdw_std_ft_sales') }}
+    where partition = '{{ var("partition") }}'
+),
+
+dim_employees as (
+    select
+        employee_sk,
+        employee_id,
+        full_name,
+        city_name,
+        country_name,
+        country_code
+    from {{ ref('mdw_std_dim_employees') }}
+),
+
+dim_products as (
+    select
+        product_sk,
+        category_id
+    from {{ ref('mdw_std_dim_products') }}
+),
+
+dim_date as (
+    select
+        date_key,
+        year,
+        quarter,
+        month,
+        year_month,
+        month_name,
+        day_name,
+        day_type
+    from {{ ref('mdw_std_dim_date') }}
 ),
 
 salesperson_daily_metrics as (
     select
-        sales_date,
-        salesperson_id,
-        salesperson_name,
-        salesperson_city,
-        salesperson_country,
+        -- Date attributes
+        f.date_key,
+        d.year,
+        d.quarter,
+        d.month,
+        d.year_month,
+        d.month_name,
+        d.day_name,
+        d.day_type,
+
+        -- Salesperson attributes
+        e.employee_sk as salesperson_sk,
+        e.employee_id as salesperson_id,
+        e.full_name as salesperson_name,
+        e.city_name as salesperson_city,
+        e.country_name as salesperson_country,
+        e.country_code as salesperson_country_code,
 
         -- Transaction metrics
-        count(distinct sales_id) as total_transactions,
-        count(distinct customer_id) as unique_customers_served,
-        count(distinct product_id) as unique_products_sold,
-        count(distinct category_id) as unique_categories_sold,
+        count(distinct f.sales_id) as total_transactions,
+        count(distinct f.customer_sk) as unique_customers_served,
+        count(distinct f.product_sk) as unique_products_sold,
+        count(distinct p.category_id) as unique_categories_sold,
 
         -- Volume metrics
-        sum(quantity) as total_quantity_sold,
+        sum(f.quantity) as total_quantity_sold,
 
         -- Revenue metrics
-        sum(gross_amount) as gross_revenue,
-        sum(discount) as total_discounts_given,
-        sum(total_price) as total_revenue,
-        sum(net_amount) as net_revenue,
+        sum(f.gross_amount) as gross_revenue,
+        sum(f.discount_amount) as total_discounts_given,
+        sum(f.net_amount) as net_revenue,
 
         -- Average metrics
-        avg(total_price) as avg_transaction_value,
-        avg(quantity) as avg_quantity_per_transaction,
-        avg(discount) as avg_discount_per_transaction,
+        avg(f.net_amount) as avg_transaction_value,
+        avg(f.quantity) as avg_quantity_per_transaction,
+        avg(f.discount_rate) as avg_discount_rate,
 
         -- Partition key (MUST be last)
-        date_format(sales_date, '%Y%m%d') as partition
-    from fact_sales
+        date_format(f.date_key, '%Y%m%d') as partition
+    from fact_sales f
+    left join dim_employees e on f.employee_sk = e.employee_sk
+    left join dim_products p on f.product_sk = p.product_sk
+    left join dim_date d on f.date_key = d.date_key
     group by
-        sales_date,
-        salesperson_id,
-        salesperson_name,
-        salesperson_city,
-        salesperson_country
+        f.date_key,
+        d.year,
+        d.quarter,
+        d.month,
+        d.year_month,
+        d.month_name,
+        d.day_name,
+        d.day_type,
+        e.employee_sk,
+        e.employee_id,
+        e.full_name,
+        e.city_name,
+        e.country_name,
+        e.country_code
 )
 
-select * from salesperson_daily_metrics
+select
+    date_key,
+    year,
+    quarter,
+    month,
+    year_month,
+    month_name,
+    day_name,
+    day_type,
+    salesperson_sk,
+    salesperson_id,
+    salesperson_name,
+    salesperson_city,
+    salesperson_country,
+    salesperson_country_code,
+    total_transactions,
+    unique_customers_served,
+    unique_products_sold,
+    unique_categories_sold,
+    total_quantity_sold,
+    gross_revenue,
+    total_discounts_given,
+    net_revenue,
+    avg_transaction_value,
+    avg_quantity_per_transaction,
+    avg_discount_rate,
+    partition
+from salesperson_daily_metrics

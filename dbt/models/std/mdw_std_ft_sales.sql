@@ -62,14 +62,23 @@ dates as (
     select
         date_key
     from {{ ref('mdw_std_dim_date') }}
-    where date_key != 'DATE000000'  -- Exclude unknown record for join
+    where date_key != date '1900-01-01'  -- Exclude unknown record for join
 ),
 
 times as (
     select
         time_key
     from {{ ref('mdw_std_dim_time') }}
-    where time_key != 'TIME000000'  -- Exclude unknown record for join
+    where time_key != time '00:00:00'  -- Exclude unknown record for join
+),
+
+-- Build date and time keys for joining to dimension tables
+sales_with_keys as (
+    select
+        s.*,
+        cast(date(s.sales_at) as date) as sales_date_key,
+        cast(date_format(s.sales_at, '%H:%i:00') as time) as sales_time_key
+    from sales s
 ),
 
 fact_sales as (
@@ -78,8 +87,8 @@ fact_sales as (
         coalesce(c.customer_sk, 'SK_CUST000000') as customer_sk,
         coalesce(p.product_sk, 'SK_PROD000000') as product_sk,
         coalesce(e.employee_sk, 'SK_EMP000000') as employee_sk,
-        coalesce(d.date_key, 'DATE000000') as date_key,
-        coalesce(t.time_key, 'TIME000000') as time_key,
+        coalesce(d.date_key, date '1900-01-01') as date_key,
+        coalesce(t.time_key, time '00:00:00') as time_key,
 
         -- Degenerate dimensions (transaction-level identifiers)
         s.sales_id,
@@ -95,24 +104,24 @@ fact_sales as (
 
         -- Partition key (MUST be last)
         date_format(s.sales_at, '%Y%m%d') as partition
-    from sales s
+    from sales_with_keys s
     -- SCD Type 2 join: get dimension surrogate key valid at transaction time
     left join products p
-        on s.product_id = p.product_id
+        on cast(s.product_id as varchar) = p.product_id
         and s.sales_at >= p.valid_from
         and (s.sales_at < p.valid_to or p.valid_to is null)
     left join customers c
-        on s.customer_id = c.customer_id
+        on cast(s.customer_id as varchar) = c.customer_id
         and s.sales_at >= c.valid_from
         and (s.sales_at < c.valid_to or c.valid_to is null)
     left join employees e
-        on s.salesperson_id = e.employee_id
+        on cast(s.salesperson_id as varchar) = e.employee_id
         and s.sales_at >= e.valid_from
         and (s.sales_at < e.valid_to or e.valid_to is null)
     left join dates d
-        on date_format(s.sales_at, '%Y%m%d') = d.date_key
+        on s.sales_date_key = d.date_key
     left join times t
-        on date_format(s.sales_at, '%H:%i:00') = t.time_key
+        on s.sales_time_key = t.time_key
 )
 
 select * from fact_sales
