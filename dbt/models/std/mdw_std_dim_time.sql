@@ -1,7 +1,7 @@
 -- models/std/mdw_std_dim_time.sql
 -- Standardized time dimension for intraday analytics
 -- Generates all minutes in a day (1,440 rows) for granular time analysis
--- Unknown record (time_key = 'TIME000000') ensures fact tables always have valid joins
+-- Unknown record (time_key = TIME '00:00:00') ensures fact tables always have valid joins
 
 {{
     config(
@@ -27,7 +27,7 @@ minutes as (
 -- Unknown record for handling missing/null time references in fact tables
 unknown_record as (
     select
-        cast('TIME000000' as varchar) as time_key,
+        cast('00:00:00' as time) as time_key,
         cast('NA' as varchar) as hour_24,
         cast('NA' as varchar) as hour_12,
         cast('NA' as varchar) as minute,
@@ -42,8 +42,11 @@ unknown_record as (
 enriched as (
     select
         -- Time key in HH:MM:SS format
-        cast(lpad(cast(minute_value / 60 as varchar), 2, '0') || ':' ||
-        lpad(cast(minute_value % 60 as varchar), 2, '0') || ':00' as varchar) as time_key,
+        cast(
+            lpad(cast(minute_value / 60 as varchar), 2, '0') || ':' ||
+            lpad(cast(minute_value % 60 as varchar), 2, '0') || ':00'
+            as time
+        ) as time_key,
 
         -- Hour attributes
         cast(minute_value / 60 as varchar) as hour_24,
