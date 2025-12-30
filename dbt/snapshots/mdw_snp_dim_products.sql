@@ -10,7 +10,11 @@
         unique_key='product_id',
         strategy='check',
         check_cols=['product_name', 'price', 'category_id', 'category_name', 'class', 'resistant', 'is_allergic', 'vitality_days'],
-        invalidate_hard_deletes=True
+        invalidate_hard_deletes=True,
+        table_type='iceberg',
+        format='parquet',
+        write_compression='snappy',
+        post_hook="UPDATE {{ this }} SET dbt_valid_from = TIMESTAMP '1900-01-01 00:00:00' WHERE dbt_valid_from = (SELECT MIN(dbt_valid_from) FROM {{ this }}) AND NOT EXISTS (SELECT 1 FROM {{ this }} WHERE dbt_valid_from = TIMESTAMP '1900-01-01 00:00:00')"
     )
 }}
 
