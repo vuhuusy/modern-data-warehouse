@@ -146,7 +146,7 @@ models:
         description: "Product vitality/shelf-life in days."
 
   - name: mdw_stg_sales
-    description: "Staging view for sales transactions. Cleans and type-casts raw sales data."
+    description: "Staging table for sales transactions. Cleans and type-casts raw sales data. Incremental with merge strategy for idempotent daily loads."
     columns:
       - name: sales_id
         description: "Primary key. Unique identifier for each sale."
@@ -181,5 +181,9 @@ models:
           - not_null
       - name: transaction_number
         description: "Unique identifier for the transaction."
+        tests:
+          - not_null
+      - name: partition
+        description: "Partition key in YYYYMMDD format derived from sales timestamp."
         tests:
           - not_null
