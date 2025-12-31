@@ -1,8 +1,8 @@
 -- models/std/mdw_std_dim_date.sql
 -- Standardized date dimension for time-based analytics
--- Generates a date spine from 2018-01-01 to 2018-12-31
+-- Generates a date spine from 2010-01-01 to 2030-12-31
 -- Includes handling for missing/unknown dates with a default Unknown record
--- Unknown record (date_key = 1900-01-01) ensures fact tables always have valid joins
+-- Unknown record (date_key = DATE '1900-01-01') ensures fact tables always have valid joins
 
 {{
     config(
@@ -33,7 +33,7 @@ dates as (
 -- Uses 1900-01-01 as deterministic key to ensure stability across runs
 unknown_record as (
     select
-        cast('DATE000000' as varchar) as date_key,
+        cast('1900-01-01' as date) as date_key,
         cast('NA' as varchar) as year,
         cast('NA' as varchar) as quarter,
         cast('NA' as varchar) as month,
@@ -56,7 +56,7 @@ unknown_record as (
 
 enriched as (
     select
-        cast(date_format(date_value, '%Y%m%d') as varchar) as date_key,
+        cast(date_value as date) as date_key,
         cast(year(date_value) as varchar) as year,
         cast(quarter(date_value) as varchar) as quarter,
         cast(month(date_value) as varchar) as month,
