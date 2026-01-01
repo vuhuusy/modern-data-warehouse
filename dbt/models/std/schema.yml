@@ -169,7 +169,7 @@ models:
     description: "Standardized date dimension for time-based analytics. Contains one row per day from 2010-01-01 to 2030-12-31 plus unknown record."
     columns:
       - name: date_key
-        description: "Primary key. Date identifier in YYYYMMDD format. 'DATE000000' for unknown record."
+        description: "Primary key. Native DATE type. DATE '1900-01-01' for unknown record."
         tests:
           - unique
           - not_null
@@ -244,7 +244,7 @@ models:
     description: "Standardized time dimension for intraday analytics. Contains one row per minute (1,440 rows) plus unknown record."
     columns:
       - name: time_key
-        description: "Primary key. Time in HH:MM:00 format. 'TIME000000' for unknown record."
+        description: "Primary key. Native TIME type. TIME '00:00:00' for unknown record."
         tests:
           - unique
           - not_null
@@ -292,7 +292,7 @@ models:
           - not_null
 
   - name: mdw_std_ft_sales
-    description: "Standardized sales fact table (normalized star schema). Contains only surrogate keys, degenerate dimensions, and measures. Dimension attributes should be retrieved via joins to dim tables. Supports SCD Type 2 via surrogate keys. Partitioned by sales date."
+    description: "Standardized sales fact table (normalized star schema). Contains only surrogate keys, degenerate dimensions, and measures. Dimension attributes should be retrieved via joins to dim tables. Supports SCD Type 2 via surrogate keys. Incremental with merge strategy using sales_id as unique key. Partitioned by sales date."
     columns:
       - name: customer_sk
         description: "Surrogate key to customer dimension version valid at transaction time. 'SK_CUST000000' for unknown."
@@ -307,11 +307,11 @@ models:
         tests:
           - not_null
       - name: date_key
-        description: "Foreign key to date dimension in YYYYMMDD format. 'DATE000000' for unknown."
+        description: "Foreign key to date dimension. Native DATE type. DATE '1900-01-01' for unknown."
         tests:
           - not_null
       - name: time_key
-        description: "Foreign key to time dimension in HH:MM:00 format. 'TIME000000' for unknown."
+        description: "Foreign key to time dimension. Native TIME type. TIME '00:00:00' for unknown."
         tests:
           - not_null
       - name: sales_id
