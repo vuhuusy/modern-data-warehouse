@@ -37,11 +37,16 @@ profile_config = ProfileConfig(
     profiles_yml_filepath=mdw_dbt / "profiles.yml",
 )
 
+operator_args = {
+    "dbt_cmd_global_flags": ["--cache-selected-only"],
+}
+
 dbt_cosmos_dag = DbtDag(
     # dbt/cosmos-specific parameters
     project_config=project_config,
     profile_config=profile_config,
     execution_config=venv_execution_config,
+    operator_args=operator_args,
     # Airflow DAG parameters
     schedule="5 0 * * *",  # At 00:05 Vietnam time (Asia/Saigon) every day
     start_date=pendulum.datetime(2018, 1, 1, tz=local_tz),
