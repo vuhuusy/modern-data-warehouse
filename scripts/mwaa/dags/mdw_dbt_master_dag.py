@@ -10,6 +10,8 @@ from cosmos.config import ExecutionMode
 
 logger = logging.getLogger(__name__)
 logger.info("Cosmos Version: %s", cosmos.__version__)
+logger.info("dbt-core Version: %s", os.popen(f"{os.environ['AIRFLOW_HOME']}/dbt_venv/bin/dbt --version").read())
+logger.info("dbt-athena Version: %s", os.popen(f"{os.environ['AIRFLOW_HOME']}/dbt_venv/bin/dbt --version | grep athena").read())
 
 # Timezone configuration
 local_tz = pendulum.timezone("Asia/Saigon")
