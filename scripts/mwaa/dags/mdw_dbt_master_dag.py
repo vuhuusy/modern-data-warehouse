@@ -44,7 +44,7 @@ dbt_cosmos_dag = DbtDag(
     execution_config=venv_execution_config,
     # Airflow DAG parameters
     schedule="5 0 * * *",  # At 00:05 Vietnam time (Asia/Saigon) every day
-    start_date=pendulum.datetime(2026, 1, 1, tz=local_tz),
+    start_date=pendulum.datetime(2018, 1, 1, tz=local_tz),
     catchup=False,
     dag_id="mdw_dbt_master_dag",
     max_active_tasks=1,  # Only allow one concurrent task
