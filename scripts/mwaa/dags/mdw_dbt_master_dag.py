@@ -26,9 +26,16 @@ venv_execution_config = ExecutionConfig(
     execution_mode=ExecutionMode.WATCHER
 )
 
+project_config = ProjectConfig(
+    dbt_project_path=mdw_dbt,
+    manifest_path="s3://mdw-dev-mwaa-artifacts/dbt/manifest.json",
+    dbt_vars={
+        "partition": "{{ ds_nodash }}",
+    })
+
 dbt_cosmos_dag = DbtDag(
     # dbt/cosmos-specific parameters
-    project_config=ProjectConfig(mdw_dbt),
+    project_config=project_config,
     profile_config=ProfileConfig(
         profile_name="mdw",
         target_name="dev",
