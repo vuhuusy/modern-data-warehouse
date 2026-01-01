@@ -33,14 +33,16 @@ project_config = ProjectConfig(
         "partition": "{{ ds_nodash }}",
     })
 
+profile_config = ProfileConfig(
+    profile_name="mdw",
+    target_name="dev",
+    profiles_yml_filepath=mdw_dbt / "profiles.yml",
+)
+
 dbt_cosmos_dag = DbtDag(
     # dbt/cosmos-specific parameters
     project_config=project_config,
-    profile_config=ProfileConfig(
-        profile_name="mdw",
-        target_name="dev",
-        profiles_yml_filepath=mdw_dbt / "profiles.yml",
-    ),
+    profile_config=profile_config,
     execution_config=venv_execution_config,
     # Airflow DAG parameters
     schedule="5 0 * * *",  # At 00:05 Vietnam time (Asia/Saigon) every day
