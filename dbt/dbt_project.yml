@@ -58,7 +58,7 @@ snapshots:
 tests:
   mdw:
     +store_failures: true
-    +schema: test_results
+    +schema: dqm # Data Quality Management schema for test results
 
 # Variables
 vars:

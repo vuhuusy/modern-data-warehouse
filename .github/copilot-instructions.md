@@ -902,21 +902,86 @@ infra/
 
 ### AWS Resource Naming Conventions
 
-- **MUST** follow pattern: `<project>-<env>-<purpose>[-<qualifier>]`
+All AWS resources **MUST** follow this standardized naming format:
+
+```
+<project>-<env>-<region>-<name>
+```
+
+#### Naming Components
+
+| Component | Description | Rules |
+|-----------|-------------|-------|
+| `project` | Short project identifier | Lowercase, alphanumeric, typically 2-5 characters |
+| `env` | Environment identifier | **Restricted values only:** `dev`, `prod` |
+| `region` | AWS region code | Official AWS region format (e.g., `ap-southeast-1`, `us-east-1`) |
+| `name` | Descriptive resource name | Lowercase, hyphens allowed, describes resource purpose |
+
+#### Environment Rules
+
+The `env` value **MUST** be exactly one of:
+- `dev` - Development environment
+- `prod` - Production environment
+
+**MUST NOT** use other values such as: `test`, `staging`, `stg`, `qa`, `sandbox`, `uat`
+
+#### Region Rules
+
+The `region` value **MUST**:
+- Use the official AWS region format (e.g., `ap-southeast-1`, `us-east-1`, `eu-west-1`)
+- Match the actual region where the resource is deployed
+- Be included in all resource names for multi-region clarity
+
+#### General Rules
+
 - **MUST** use lowercase letters, numbers, and hyphens only
 - **MUST NOT** use underscores in AWS resource names (use hyphens)
 - **MUST NOT** exceed AWS naming limits
+- **MUST** maintain consistent component ordering: `project-env-region-name`
 
-**Examples:**
+#### Scope of Enforcement
 
-| Resource Type | Naming Pattern | Example |
-|---------------|----------------|---------|
-| S3 Bucket | `<project>-<env>-<purpose>` | `mdw-dev-data-raw` |
-| IAM Role | `<project>-<env>-<service>-role` | `mdw-prod-glue-crawler-role` |
-| IAM Policy | `<project>-<env>-<service>-policy` | `mdw-dev-athena-access-policy` |
-| Glue Database | `<project>_<env>_<purpose>` | `mdw_dev_raw` |
-| Glue Crawler | `<project>-<env>-<purpose>-crawler` | `mdw-prod-sales-crawler` |
-| Athena Workgroup | `<project>-<env>-<purpose>` | `mdw-dev-analytics` |
+This naming convention **MUST** be applied consistently across:
+- All AWS resources (S3, IAM, MWAA, Glue, Athena, EC2, VPC, Lambda, etc.)
+- Infrastructure as Code (Terraform, CloudFormation)
+- CI/CD pipelines and related configuration files
+- Code examples, snippets, and generated templates
+
+#### Correct Examples
+
+| Resource Type | Example Name |
+|---------------|--------------|
+| S3 Bucket | `mdw-dev-ap-southeast-1-data-raw` |
+| S3 Bucket | `mdw-prod-ap-southeast-1-mwaa-artifacts` |
+| IAM Role | `mdw-prod-us-east-1-glue-crawler-role` |
+| IAM Policy | `mdw-dev-ap-southeast-1-athena-access-policy` |
+| MWAA Environment | `mdw-dev-ap-southeast-1-mwaa` |
+| Athena Workgroup | `mdw-prod-ap-southeast-1-analytics` |
+| Glue Crawler | `mdw-dev-ap-southeast-1-sales-crawler` |
+
+#### Incorrect Examples (MUST NOT Use)
+
+| Incorrect Name | Reason |
+|----------------|--------|
+| `mdw-ap-southeast-1-prod-mwaa` | Wrong order: region before env |
+| `mdw-dev-mwaa` | Missing region component |
+| `mwaa-mdw-prod` | Wrong order: name before project |
+| `mdw-staging-ap-southeast-1-s3` | Invalid env value (`staging`) |
+| `mdw_dev_ap_southeast_1_data` | Uses underscores instead of hyphens |
+
+#### Exception: Glue Databases
+
+Glue databases use underscores due to Athena/Hive naming requirements:
+
+```
+<project>_<env>_<region_underscored>_<purpose>
+```
+
+Example: `mdw_dev_ap_southeast_1_raw`
+
+#### Clarification Requirement
+
+If `project` or `region` cannot be inferred from context, Copilot **MUST** ask for clarification instead of guessing or using placeholder values.
 
 ---
 
