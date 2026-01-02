@@ -2,8 +2,8 @@
 # Bootstrap - Terraform State Backend Resources
 ################################################################################
 #
-# This module creates the S3 bucket and DynamoDB table required for
-# Terraform remote state management.
+# This module creates the S3 bucket required for Terraform remote state
+# management. State locking uses S3 native locking (use_lockfile = true).
 #
 # IMPORTANT: Run this module FIRST before initializing other environments.
 #
@@ -80,30 +80,4 @@ resource "aws_s3_bucket_public_access_block" "tfstate" {
   block_public_policy     = true
   ignore_public_acls      = true
   restrict_public_buckets = true
-}
-
-################################################################################
-# DynamoDB Tables for State Locking
-################################################################################
-
-resource "aws_dynamodb_table" "tfstate_lock" {
-  for_each = toset(var.environments)
-
-  name         = "${var.project}-${each.value}-${var.aws_region}-tfstate-lock"
-  billing_mode = "PAY_PER_REQUEST"
-  hash_key     = "LockID"
-
-  attribute {
-    name = "LockID"
-    type = "S"
-  }
-
-  tags = {
-    env           = each.value
-    resource_type = "dynamodb"
-  }
-
-  lifecycle {
-    prevent_destroy = false
-  }
 }

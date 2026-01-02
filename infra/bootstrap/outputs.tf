@@ -16,24 +16,17 @@ output "tfstate_bucket_arns" {
   }
 }
 
-output "dynamodb_table_names" {
-  description = "DynamoDB table names for state locking by environment"
-  value = {
-    for env, table in aws_dynamodb_table.tfstate_lock : env => table.name
-  }
-}
-
 output "backend_config" {
   description = "Backend configuration snippets for each environment"
   value = {
     for env in var.environments : env => <<-EOT
       terraform {
         backend "s3" {
-          bucket         = "${var.project}-${env}-${var.aws_region}-tfstate"
-          key            = "infrastructure/terraform.tfstate"
-          region         = "${var.aws_region}"
-          encrypt        = true
-          dynamodb_table = "${var.project}-${env}-${var.aws_region}-tfstate-lock"
+          bucket       = "${var.project}-${env}-${var.aws_region}-tfstate"
+          key          = "infrastructure/terraform.tfstate"
+          region       = "${var.aws_region}"
+          encrypt      = true
+          use_lockfile = true
         }
       }
     EOT
