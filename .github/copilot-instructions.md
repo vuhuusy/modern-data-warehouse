@@ -197,6 +197,7 @@ Notes:
 - The developer reviews, adjusts if needed, and submits the PR.
 - Always verify the target branch (`--base`) before submission.
 - **PowerShell escaping**: When using `gh pr create` in PowerShell, use double backticks (``` `` ```) instead of single backticks for inline code in the PR body. Single backticks are escape characters in PowerShell and will be stripped.
+- **MUST NOT** automatically merge the PR after creation. The PR must be reviewed and merged manually by the developer.
 
 ---
 
