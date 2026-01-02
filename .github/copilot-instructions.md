@@ -125,6 +125,73 @@ Steps to push and create a PR:
    gh pr create --base main --head <branch-name>
    ```
 
+### Identifying Unmerged Commits
+
+Before creating a PR, the agent **MUST** identify only commits that have not yet been merged into the target branch.
+
+**Required steps:**
+
+1. Fetch the latest target branch:
+   ```bash
+   git fetch origin main
+   ```
+
+2. Identify unmerged commits:
+   ```bash
+   git log --oneline origin/main..<source-branch>
+   ```
+
+3. Review only the diff of unmerged commits:
+   ```bash
+   git diff origin/main..<source-branch>
+   ```
+
+**Rules:**
+
+- **MUST** process only commits returned by `git log origin/main..<source-branch>`
+- **MUST NOT** include already merged commits in summaries, PR descriptions, or commit lists
+- **MUST NOT** rewrite, reprocess, or modify existing merged history
+- **MUST NOT** create a PR if there are no unmerged commits
+
+### PR Description Accuracy
+
+The PR description **MUST** accurately and completely reflect the actual code changes.
+
+**Mandatory requirements:**
+
+1. **Derived from diff only**: All items in "What Changed" must come directly from `git diff origin/main..<source-branch>`
+2. **No fabrication**: MUST NOT include inferred, assumed, or fabricated changes
+3. **No exaggeration**: MUST NOT overstate the scope or impact of changes
+4. **No omission**: MUST NOT omit significant changes visible in the diff
+5. **Truthful summary**: The summary must match what the diff actually shows
+
+**Verification checklist before PR creation:**
+
+- [ ] Ran `git log origin/main..<source-branch>` to identify unmerged commits
+- [ ] Ran `git diff origin/main..<source-branch> --stat` to verify changed files
+- [ ] Each bullet in "What Changed" corresponds to actual changes in the diff
+- [ ] No changes from previously merged PRs are mentioned
+- [ ] PR title reflects the primary change type from unmerged commits only
+
+**Example workflow:**
+
+```bash
+# 1. Fetch latest main
+git fetch origin main
+
+# 2. List unmerged commits
+git log --oneline origin/main..dev
+# Output: 
+# abc1234 feat: add dbt_run_at column
+# def5678 fix: update package sources
+
+# 3. View summary of changes
+git diff origin/main..dev --stat
+
+# 4. Create PR based ONLY on these commits
+gh pr create --base main --head dev --title "..." --body "..."
+```
+
 Notes:
 - Copilot generates the commit message, PR title, and PR description.
 - The developer reviews, adjusts if needed, and submits the PR.
