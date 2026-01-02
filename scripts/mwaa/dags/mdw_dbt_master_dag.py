@@ -14,6 +14,10 @@ logger.info("Cosmos Version: %s", cosmos.__version__)
 # Timezone configuration
 local_tz = pendulum.timezone("Asia/Saigon")
 
+# Environment configuration
+# Set DBT_TARGET in MWAA Airflow Configuration: env.DBT_TARGET = dev (or prod)
+dbt_target = os.environ.get("dbt_target", "dev")
+
 # Path configurations
 mdw_dbt = Path("/usr/local/airflow/dags/dbt/mdw_dbt")
 dbt_executable = f"{os.environ['AIRFLOW_HOME']}/dbt_venv/bin/dbt"
@@ -33,7 +37,7 @@ project_config = ProjectConfig(
 
 profile_config = ProfileConfig(
     profile_name="mdw",
-    target_name="dev",
+    target_name=dbt_target,
     profiles_yml_filepath=mdw_dbt / "profiles.yml",
 )
 
