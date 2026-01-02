@@ -15,7 +15,7 @@ logger.info("Cosmos Version: %s", cosmos.__version__)
 local_tz = pendulum.timezone("Asia/Saigon")
 
 # Environment configuration
-# Set DBT_TARGET in MWAA Airflow Configuration: env.DBT_TARGET = dev (or prod)
+# Set dbt_target in MWAA Airflow Configuration: env.dbt_target = dev (or prod)
 dbt_target = os.environ.get("dbt_target", "dev")
 
 # Path configurations
