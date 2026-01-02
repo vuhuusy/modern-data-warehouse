@@ -5,11 +5,11 @@ Enterprise-grade Terraform module for creating secure AWS S3 buckets with best p
 ## Features
 
 - ✅ **Security by Default**: All public access blocked, versioning enabled, SSE-KMS encryption
-- ✅ **Enterprise Naming**: Consistent `<project>-<env>-<name>` naming convention
+- ✅ **Enterprise Naming**: Consistent `<project>-<env>-<region>-<name>` naming convention
 - ✅ **Mandatory Tagging**: Enforces project, environment, owner, cost_center tags
 - ✅ **TLS Enforcement**: Denies non-HTTPS requests and requires TLS 1.2+
 - ✅ **Flexible Configuration**: Optional lifecycle rules, logging, CORS
-- ✅ **Multi-Environment**: Supports dev, stg, prod environments
+- ✅ **Multi-Environment**: Supports dev and prod environments
 
 ## Usage
 
@@ -22,8 +22,8 @@ module "data_lake" {
   bucket_name = "data-lake"
   project     = "mdw"
   environment = "dev"
+  region      = "us-west-2"
   owner       = "data-engineering"
-  cost_center = "CC-12345"
 }
 ```
 
@@ -36,8 +36,8 @@ module "data_lake_prod" {
   bucket_name = "data-lake"
   project     = "mdw"
   environment = "prod"
+  region      = "us-west-2"
   owner       = "data-engineering"
-  cost_center = "CC-12345"
 
   # KMS encryption with custom key
   encryption_configuration = {
@@ -83,7 +83,7 @@ module "data_lake_prod" {
 
   # Enable access logging
   logging_enabled       = true
-  logging_target_bucket = "mdw-prod-access-logs"
+  logging_target_bucket = "mdw-prod-us-west-2-access-logs"
   logging_target_prefix = "data-lake/"
 
   tags = {
@@ -111,8 +111,8 @@ data "aws_iam_policy_document" "cross_account_access" {
     ]
 
     resources = [
-      "arn:aws:s3:::mdw-prod-shared-data",
-      "arn:aws:s3:::mdw-prod-shared-data/*"
+      "arn:aws:s3:::mdw-prod-us-west-2-shared-data",
+      "arn:aws:s3:::mdw-prod-us-west-2-shared-data/*"
     ]
   }
 }
@@ -123,8 +123,8 @@ module "shared_data" {
   bucket_name = "shared-data"
   project     = "mdw"
   environment = "prod"
+  region      = "us-west-2"
   owner       = "data-engineering"
-  cost_center = "CC-12345"
 
   attach_policy = true
   policy        = data.aws_iam_policy_document.cross_account_access.json
@@ -144,10 +144,10 @@ module "shared_data" {
 |------|-------------|------|---------|:--------:|
 | bucket_name | The name of the S3 bucket | `string` | n/a | yes |
 | project | Project identifier | `string` | n/a | yes |
-| environment | Deployment environment (dev/stg/prod) | `string` | n/a | yes |
+| environment | Deployment environment (dev/prod) | `string` | n/a | yes |
+| region | AWS region code (e.g., us-west-2) | `string` | n/a | yes |
 | owner | Owner for tagging | `string` | n/a | yes |
-| cost_center | Cost center code | `string` | n/a | yes |
-| use_prefix | Prefix bucket name with project and env | `bool` | `true` | no |
+| use_prefix | Prefix bucket name with project, env, region | `bool` | `true` | no |
 | block_public_access | Public access block configuration | `object` | All blocked | no |
 | versioning_enabled | Enable bucket versioning | `bool` | `true` | no |
 | versioning_mfa_delete | Enable MFA delete | `bool` | `false` | no |

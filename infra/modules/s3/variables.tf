@@ -23,23 +23,29 @@ variable "project" {
 }
 
 variable "environment" {
-  description = "Deployment environment. Valid values: dev, stg, prod."
+  description = "Deployment environment. Valid values: dev, prod."
   type        = string
 
   validation {
-    condition     = contains(["dev", "stg", "prod"], var.environment)
-    error_message = "Environment must be one of: dev, stg, prod."
+    condition     = contains(["dev", "prod"], var.environment)
+    error_message = "Environment must be one of: dev, prod."
+  }
+}
+
+variable "region" {
+  description = "AWS region code for naming convention (e.g., us-west-2, us-east-1)."
+  type        = string
+
+  validation {
+    condition     = can(regex("^[a-z]{2}-[a-z]+-[0-9]+$", var.region))
+    error_message = "Region must be a valid AWS region format (e.g., us-west-2, us-east-1)."
   }
 }
 
 variable "owner" {
   description = "Owner of the resource (team or individual) for tagging."
   type        = string
-}
-
-variable "cost_center" {
-  description = "Cost center code for billing and chargeback."
-  type        = string
+  default     = "syvh"
 }
 
 ################################################################################
@@ -84,9 +90,9 @@ variable "versioning_mfa_delete" {
 ################################################################################
 
 variable "encryption_configuration" {
-  description = "Server-side encryption configuration. Uses SSE-KMS by default."
+  description = "Server-side encryption configuration. Uses AES256 by default (free). Use aws:kms for production."
   type = object({
-    sse_algorithm             = optional(string, "aws:kms")
+    sse_algorithm             = optional(string, "AES256")
     kms_master_key_id         = optional(string, null)
     bucket_key_enabled        = optional(bool, true)
   })
@@ -139,28 +145,6 @@ variable "object_ownership" {
     condition     = contains(["BucketOwnerEnforced", "BucketOwnerPreferred", "ObjectWriter"], var.object_ownership)
     error_message = "Object ownership must be one of: BucketOwnerEnforced, BucketOwnerPreferred, ObjectWriter."
   }
-}
-
-################################################################################
-# Optional Variables - Access Logging
-################################################################################
-
-variable "logging_enabled" {
-  description = "Enable access logging for the bucket."
-  type        = bool
-  default     = false
-}
-
-variable "logging_target_bucket" {
-  description = "Target bucket for access logs. Required if logging_enabled is true."
-  type        = string
-  default     = null
-}
-
-variable "logging_target_prefix" {
-  description = "Prefix for access log objects. Defaults to bucket name if not specified."
-  type        = string
-  default     = null
 }
 
 ################################################################################
