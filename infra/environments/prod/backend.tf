@@ -2,7 +2,7 @@
 # Terraform Backend Configuration - Production Environment
 ################################################################################
 #
-# State is stored in S3 with DynamoDB locking for team collaboration.
+# State is stored in S3 with native S3 state locking for team collaboration.
 # The backend bucket must be created before running terraform init.
 #
 # To create backend resources, run:
@@ -12,10 +12,10 @@
 
 terraform {
   backend "s3" {
-    bucket         = "mdw-prod-us-west-2-tfstate"
-    key            = "infrastructure/terraform.tfstate"
-    region         = "us-west-2"
-    encrypt        = true
-    dynamodb_table = "mdw-prod-us-west-2-tfstate-lock"
+    bucket       = "mdw-prod-us-west-2-tfstate"
+    key          = "infrastructure/terraform.tfstate"
+    region       = "us-west-2"
+    encrypt      = true
+    use_lockfile = true
   }
 }
