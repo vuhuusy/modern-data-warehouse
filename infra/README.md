@@ -6,24 +6,29 @@ This directory contains Terraform configurations for provisioning the Modern Dat
 
 ```
 infra/
-├── environments/           # Environment-specific configurations
-│   ├── dev/               # Development environment
-│   │   ├── backend.tf     # Remote state configuration
-│   │   ├── main.tf        # Resource definitions
-│   │   ├── outputs.tf     # Output values
+├── bootstrap/             # Terraform state backend resources
+│   ├── main.tf           # S3 + DynamoDB for state management
+│   ├── variables.tf      # Bootstrap configuration
+│   ├── outputs.tf        # Backend config snippets
+│   └── versions.tf       # Provider constraints
+├── environments/          # Environment-specific configurations
+│   ├── dev/              # Development environment
+│   │   ├── backend.tf    # Remote state configuration
+│   │   ├── main.tf       # Resource definitions
+│   │   ├── outputs.tf    # Output values
 │   │   ├── terraform.tfvars # Variable values
-│   │   ├── variables.tf   # Variable declarations
-│   │   └── versions.tf    # Provider constraints
-│   └── prod/              # Production environment
-│       └── ...            # Same structure as dev
-├── modules/               # Reusable Terraform modules
-│   └── s3/               # S3 bucket module with security defaults
-└── README.md             # This file
+│   │   ├── variables.tf  # Variable declarations
+│   │   └── versions.tf   # Provider constraints
+│   └── prod/             # Production environment
+│       └── ...           # Same structure as dev
+├── modules/              # Reusable Terraform modules
+│   └── s3/              # S3 bucket module with security defaults
+└── README.md            # This file
 ```
 
 ## Prerequisites
 
-- **Terraform** >= 1.10.0
+- **Terraform** ~> 1.14.0
 - **AWS CLI** configured with appropriate credentials
 - **AWS Account** with permissions to create S3, IAM, and DynamoDB resources
 
@@ -46,22 +51,21 @@ All AWS resources follow this naming pattern:
 
 ## Quick Start
 
-### 1. Initialize Backend (First Time Only)
+### 1. Bootstrap Backend (First Time Only)
 
-Before running Terraform, ensure the S3 backend bucket and DynamoDB table exist:
+Run the bootstrap module to create S3 bucket and DynamoDB table for Terraform state:
 
 ```bash
-# Create state bucket (replace with your values)
-aws s3 mb s3://mdw-dev-us-west-2-tfstate --region us-west-2
-
-# Create DynamoDB table for state locking
-aws dynamodb create-table \
-  --table-name mdw-dev-us-west-2-tflock \
-  --attribute-definitions AttributeName=LockID,AttributeType=S \
-  --key-schema AttributeName=LockID,KeyType=HASH \
-  --billing-mode PAY_PER_REQUEST \
-  --region us-west-2
+cd infra/bootstrap
+terraform init
+terraform apply
 ```
+
+This creates:
+- `mdw-dev-us-west-2-tfstate` - S3 bucket for dev state
+- `mdw-prod-us-west-2-tfstate` - S3 bucket for prod state
+- `mdw-dev-us-west-2-tfstate-lock` - DynamoDB table for dev locking
+- `mdw-prod-us-west-2-tfstate-lock` - DynamoDB table for prod locking
 
 ### 2. Deploy Development Environment
 
@@ -98,6 +102,7 @@ terraform apply tfplan
 | Feature | Configuration |
 |---------|---------------|
 | Access Logging | Disabled |
+| Encryption | AES-256 (default) |
 | MWAA | Enabled |
 | Raw Data IA Transition | 90 days |
 | Athena Results Retention | 7 days |
@@ -107,11 +112,12 @@ terraform apply tfplan
 | Feature | Configuration |
 |---------|---------------|
 | Access Logging | Enabled |
+| Encryption | AWS KMS |
 | MWAA | Enabled |
-| Raw Data IA Transition | 30 days |
-| Raw Data Glacier | 90 days |
-| Athena Results Retention | 30 days |
-| Access Logs Retention | 365 days |
+| Raw Data IA Transition | 90 days |
+| Raw Data Glacier | 365 days |
+| Athena Results Retention | 7 days |
+| Access Logs Retention | 2555 days (7 years) |
 
 ## Modules
 

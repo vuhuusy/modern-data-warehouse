@@ -5,7 +5,7 @@ This module provisions the S3 bucket and DynamoDB table required for Terraform r
 ## Prerequisites
 
 - AWS CLI configured with appropriate credentials
-- Terraform >= 1.14.0
+- Terraform ~> 1.14.0
 
 ## Resources Created
 

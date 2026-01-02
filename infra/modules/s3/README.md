@@ -4,12 +4,13 @@ Enterprise-grade Terraform module for creating secure AWS S3 buckets with best p
 
 ## Features
 
-- ✅ **Security by Default**: All public access blocked, versioning enabled, SSE-KMS encryption
+- ✅ **Security by Default**: All public access blocked, versioning enabled
 - ✅ **Enterprise Naming**: Consistent `<project>-<env>-<region>-<name>` naming convention
-- ✅ **Mandatory Tagging**: Enforces project, environment, owner, cost_center tags
+- ✅ **Mandatory Tagging**: Enforces project, environment, region, owner tags
 - ✅ **TLS Enforcement**: Denies non-HTTPS requests and requires TLS 1.2+
-- ✅ **Flexible Configuration**: Optional lifecycle rules, logging, CORS
+- ✅ **Flexible Configuration**: Optional lifecycle rules, CORS
 - ✅ **Multi-Environment**: Supports dev and prod environments
+- ✅ **Encryption Options**: AES-256 (default) or AWS KMS
 
 ## Usage
 
@@ -27,7 +28,7 @@ module "data_lake" {
 }
 ```
 
-### Production Data Lake with Lifecycle Rules
+### Production Data Lake with KMS Encryption
 
 ```hcl
 module "data_lake_prod" {
@@ -39,10 +40,9 @@ module "data_lake_prod" {
   region      = "us-west-2"
   owner       = "data-engineering"
 
-  # KMS encryption with custom key
+  # KMS encryption for production
   encryption_configuration = {
-    sse_algorithm     = "aws:kms"
-    kms_master_key_id = "arn:aws:kms:us-west-2:123456789012:key/12345678-1234-1234-1234-123456789012"
+    sse_algorithm      = "aws:kms"
     bucket_key_enabled = true
   }
 
@@ -80,11 +80,6 @@ module "data_lake_prod" {
       }
     }
   ]
-
-  # Enable access logging
-  logging_enabled       = true
-  logging_target_bucket = "mdw-prod-us-west-2-access-logs"
-  logging_target_prefix = "data-lake/"
 
   tags = {
     data_classification = "confidential"
@@ -135,8 +130,8 @@ module "shared_data" {
 
 | Name | Version |
 |------|---------|
-| terraform | >= 1.5.0 |
-| aws | >= 5.0 |
+| terraform | ~> 1.14.0 |
+| aws | ~> 6.0 |
 
 ## Inputs
 

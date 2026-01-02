@@ -19,7 +19,7 @@ aws_region  = "us-west-2"
 region      = "us-west-2"
 project     = "mdw"
 environment = "prod"
-owner       = "data-engineering"
+owner       = "syvh"
 
 #------------------------------------------------------------------------------
 # Feature Flags
