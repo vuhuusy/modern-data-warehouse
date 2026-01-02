@@ -104,5 +104,7 @@ select
     first_day_of_month,
     last_day_of_month,
     first_day_of_quarter,
-    first_day_of_year
+    first_day_of_year,
+    -- Technical columns
+    current_timestamp as dbt_run_at
 from final

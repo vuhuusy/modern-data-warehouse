@@ -146,6 +146,8 @@ select
     m.lifetime_net_revenue,
     cast(m.lifetime_net_revenue as double) / nullif(m.total_transactions, 0) as avg_transaction_value,
     cast(m.total_quantity_purchased as double) / nullif(m.total_transactions, 0) as avg_quantity_per_transaction,
-    cast(m.total_transactions as double) / nullif(m.active_days, 0) as avg_transactions_per_active_day
+    cast(m.total_transactions as double) / nullif(m.active_days, 0) as avg_transactions_per_active_day,
+    -- Technical columns
+    current_timestamp as dbt_run_at
 from merged_metrics m
 left join dim_customers c on m.customer_sk = c.customer_sk

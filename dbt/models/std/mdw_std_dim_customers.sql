@@ -100,5 +100,7 @@ select
     country_code,
     valid_from,
     valid_to,
-    is_current
+    is_current,
+    -- Technical columns
+    current_timestamp as dbt_run_at
 from final
