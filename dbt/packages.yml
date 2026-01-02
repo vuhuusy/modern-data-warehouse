@@ -8,6 +8,6 @@ packages:
     version: ">=1.0.0"
 
   # dbt-expectations: Data quality testing macros (Great Expectations style)
-  # https://hub.getdbt.com/calogica/dbt_expectations/latest/
-  - package: calogica/dbt_expectations
+  # https://hub.getdbt.com/metaplane/dbt_expectations/latest/
+  - package: metaplane/dbt_expectations
     version: ">=0.10.0"
