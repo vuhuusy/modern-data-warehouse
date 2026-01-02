@@ -98,6 +98,9 @@ product_daily_metrics as (
         min(f.unit_price) as min_unit_price,
         max(f.unit_price) as max_unit_price,
 
+        -- Technical columns
+        current_timestamp as dbt_run_at,
+
         -- Partition key (MUST be last)
         date_format(f.date_key, '%Y%m%d') as partition
     from fact_sales f
@@ -147,5 +150,6 @@ select
     avg_quantity_per_transaction,
     min_unit_price,
     max_unit_price,
+    dbt_run_at,
     partition
 from product_daily_metrics

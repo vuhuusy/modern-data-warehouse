@@ -36,7 +36,8 @@ unknown_record as (
         cast('NA' as varchar) as hour_band,
         cast('NA' as varchar) as business_hour,
         cast('NA' as varchar) as display_24,
-        cast('NA' as varchar) as display_12
+        cast('NA' as varchar) as display_12,
+        current_timestamp as dbt_run_at
 ),
 
 enriched as (
@@ -91,7 +92,10 @@ enriched as (
             else minute_value / 60
         end as varchar), 2, '0') || ':' ||
         lpad(cast(minute_value % 60 as varchar), 2, '0') || ' ' ||
-        case when minute_value / 60 < 12 then 'AM' else 'PM' end as varchar) as display_12
+        case when minute_value / 60 < 12 then 'AM' else 'PM' end as varchar) as display_12,
+
+        -- Technical columns
+        current_timestamp as dbt_run_at
 
     from minutes
 )

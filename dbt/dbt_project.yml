@@ -47,6 +47,13 @@ models:
       +write_compression: snappy
       +schema: cur
 
+snapshots:
+  mdw:
+    +materialized: snapshot
+    +table_type: iceberg
+    +format: parquet
+    +write_compression: snappy
+
 # Test configurations
 tests:
   mdw:

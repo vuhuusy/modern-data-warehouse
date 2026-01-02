@@ -108,6 +108,9 @@ fact_sales as (
         coalesce(p.price, cast(0 as decimal(10,2))) * coalesce(s.quantity, 0) * coalesce(s.discount, cast(0 as decimal(10,2))) as discount_amount,
         coalesce(p.price, cast(0 as decimal(10,2))) * coalesce(s.quantity, 0) * (1 - coalesce(s.discount, cast(0 as decimal(10,2)))) as net_amount,
 
+        -- Technical columns
+        current_timestamp as dbt_run_at,
+
         -- Partition key (MUST be last)
         date_format(s.sales_at, '%Y%m%d') as partition
     from sales_with_keys s

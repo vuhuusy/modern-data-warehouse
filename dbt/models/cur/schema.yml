@@ -75,6 +75,10 @@ models:
         description: "Average quantity sold per transaction."
       - name: avg_discount_rate
         description: "Average discount rate applied per transaction."
+      - name: dbt_run_at
+        description: "Technical column. Timestamp when dbt executed this model."
+        tests:
+          - not_null
       - name: partition
         description: "Partition key in YYYYMMDD format."
         tests:
@@ -167,6 +171,10 @@ models:
         description: "Minimum unit price observed for this product."
       - name: max_unit_price
         description: "Maximum unit price observed for this product."
+      - name: dbt_run_at
+        description: "Technical column. Timestamp when dbt executed this model."
+        tests:
+          - not_null
       - name: partition
         description: "Partition key in YYYYMMDD format."
         tests:
@@ -250,6 +258,10 @@ models:
         description: "Average quantity per transaction for this customer."
       - name: avg_transactions_per_active_day
         description: "Average transactions per day when customer was active."
+      - name: dbt_run_at
+        description: "Technical column. Timestamp when dbt executed this model."
+        tests:
+          - not_null
 
   - name: mdw_cur_salesperson_performance
     description: "Daily salesperson performance metrics for sales team analysis and performance tracking. Incremental with merge strategy using [date_key, salesperson_sk] as unique key."
@@ -342,6 +354,10 @@ models:
         description: "Average quantity per transaction for this salesperson."
       - name: avg_discount_rate
         description: "Average discount rate for this salesperson."
+      - name: dbt_run_at
+        description: "Technical column. Timestamp when dbt executed this model."
+        tests:
+          - not_null
       - name: partition
         description: "Partition key in YYYYMMDD format."
         tests:
@@ -422,6 +438,10 @@ models:
         description: "Average transaction value in this category."
       - name: avg_quantity_per_transaction
         description: "Average quantity per transaction in this category."
+      - name: dbt_run_at
+        description: "Technical column. Timestamp when dbt executed this model."
+        tests:
+          - not_null
       - name: partition
         description: "Partition key in YYYYMMDD format."
         tests:

@@ -104,6 +104,9 @@ salesperson_daily_metrics as (
         avg(f.quantity) as avg_quantity_per_transaction,
         avg(f.discount_rate) as avg_discount_rate,
 
+        -- Technical columns
+        current_timestamp as dbt_run_at,
+
         -- Partition key (MUST be last)
         date_format(f.date_key, '%Y%m%d') as partition
     from fact_sales f
@@ -153,5 +156,6 @@ select
     avg_transaction_value,
     avg_quantity_per_transaction,
     avg_discount_rate,
+    dbt_run_at,
     partition
 from salesperson_daily_metrics
