@@ -3,15 +3,15 @@
 ################################################################################
 
 locals {
-  # Bucket naming: <project>-<env>-<name> or custom name
-  bucket_name = var.use_prefix ? "${var.project}-${var.environment}-${var.bucket_name}" : var.bucket_name
+  # Bucket naming: <project>-<env>-<region>-<name> or custom name
+  bucket_name = var.use_prefix ? "${var.project}-${var.environment}-${var.region}-${var.bucket_name}" : var.bucket_name
 
   # Mandatory tags following enterprise standards
   mandatory_tags = {
     project       = var.project
     env           = var.environment
+    region        = var.region
     owner         = var.owner
-    cost_center   = var.cost_center
     managed_by    = var.managed_by
     resource_type = "s3"
     created_by    = "terraform"
@@ -20,9 +20,6 @@ locals {
 
   # Merge mandatory tags with additional tags (mandatory tags take precedence)
   tags = merge(var.tags, local.mandatory_tags)
-
-  # Logging prefix defaults to bucket name if not specified
-  logging_prefix = var.logging_target_prefix != null ? var.logging_target_prefix : "${local.bucket_name}/"
 
   # Determine if any policy should be attached
   attach_any_policy = var.attach_policy || var.attach_deny_insecure_transport_policy || var.attach_require_latest_tls_policy
@@ -175,19 +172,6 @@ resource "aws_s3_bucket_policy" "this" {
   policy = data.aws_iam_policy_document.combined[0].json
 
   depends_on = [aws_s3_bucket_public_access_block.this]
-}
-
-################################################################################
-# Access Logging
-################################################################################
-
-resource "aws_s3_bucket_logging" "this" {
-  count = var.logging_enabled ? 1 : 0
-
-  bucket = aws_s3_bucket.this.id
-
-  target_bucket = var.logging_target_bucket
-  target_prefix = local.logging_prefix
 }
 
 ################################################################################
