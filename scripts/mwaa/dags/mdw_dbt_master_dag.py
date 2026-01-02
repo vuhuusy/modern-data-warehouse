@@ -17,6 +17,7 @@ local_tz = pendulum.timezone("Asia/Saigon")
 # Environment configuration
 # Set dbt_target in MWAA Airflow Configuration: env.dbt_target = dev (or prod)
 dbt_target = os.environ.get("dbt_target", "dev")
+logger.info("Using dbt target: %s", dbt_target)
 
 # Path configurations
 mdw_dbt = Path("/usr/local/airflow/dags/dbt/mdw_dbt")
