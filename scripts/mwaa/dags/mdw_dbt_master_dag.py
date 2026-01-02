@@ -30,7 +30,7 @@ venv_execution_config = ExecutionConfig(
 
 project_config = ProjectConfig(
     dbt_project_path=mdw_dbt,
-    manifest_path="s3://mdw-dev-mwaa-artifacts/dbt/manifest.json",
+    manifest_path=f"s3://mdw-{dbt_target}-mwaa-artifacts/dbt/manifest.json",
     dbt_vars={
         "partition": "{{ ds_nodash }}",
     })
