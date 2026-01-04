@@ -50,12 +50,6 @@ variable "owner" {
 # Optional Variables - Feature Flags
 #------------------------------------------------------------------------------
 
-variable "enable_access_logging" {
-  description = "Enable S3 access logging for audit compliance."
-  type        = bool
-  default     = true # Enabled by default in production
-}
-
 variable "enable_mwaa" {
   description = "Create MWAA-related S3 buckets."
   type        = bool
@@ -88,12 +82,6 @@ variable "athena_results_expiration_days" {
   description = "Days before Athena query results expire."
   type        = number
   default     = 7
-}
-
-variable "access_logs_retention_days" {
-  description = "Days to retain access logs before expiration."
-  type        = number
-  default     = 2555 # 7 years for compliance
 }
 
 #------------------------------------------------------------------------------

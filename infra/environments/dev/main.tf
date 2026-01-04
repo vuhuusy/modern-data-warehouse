@@ -85,7 +85,6 @@ module "raw_bucket" {
 
   tags = merge(var.additional_tags, {
     layer               = "raw"
-    data_classification = "internal"
   })
 }
 
@@ -130,7 +129,6 @@ module "curated_bucket" {
 
   tags = merge(var.additional_tags, {
     layer               = "curated"
-    data_classification = "internal"
   })
 }
 
@@ -213,64 +211,4 @@ module "athena_results_bucket" {
   })
 }
 
-################################################################################
-# Access Logs (Conditional)
-################################################################################
-#
-# Centralized S3 access logging bucket.
-# - Required for audit compliance in production
-# - Long retention for regulatory requirements
-#
-################################################################################
 
-module "access_logs_bucket" {
-  count  = var.enable_access_logging ? 1 : 0
-  source = "../../modules/s3"
-
-  bucket_name = "access-logs"
-  project     = var.project
-  environment = var.environment
-  region      = var.region
-  owner       = var.owner
-
-  # Disable versioning for log data
-  versioning_enabled = false
-
-  # Use AES256 for logs (KMS adds significant cost for high-volume logging)
-  encryption_configuration = {
-    sse_algorithm      = "AES256"
-    bucket_key_enabled = false
-  }
-
-  # Disable TLS policy attachment for log delivery
-  attach_deny_insecure_transport_policy = false
-  attach_require_latest_tls_policy      = false
-
-  lifecycle_rules = [
-    {
-      id     = "archive-and-expire-logs"
-      status = "Enabled"
-
-      transition = [
-        {
-          days          = 30
-          storage_class = "STANDARD_IA"
-        },
-        {
-          days          = 90
-          storage_class = "GLACIER"
-        }
-      ]
-
-      expiration = {
-        days = var.access_logs_retention_days
-      }
-    },
-    local.abort_incomplete_uploads_rule
-  ]
-
-  tags = merge(var.additional_tags, {
-    purpose             = "logging"
-    data_classification = "audit"
-  })
-}

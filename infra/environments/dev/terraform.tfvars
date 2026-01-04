@@ -25,8 +25,7 @@ owner       = "syvh"
 # Feature Flags
 #------------------------------------------------------------------------------
 
-enable_access_logging = false
-enable_mwaa           = true
+enable_mwaa = true
 
 #------------------------------------------------------------------------------
 # Lifecycle Configuration
@@ -36,7 +35,6 @@ raw_data_ia_days               = 90
 raw_data_glacier_days          = 365
 curated_data_ia_days           = 180
 athena_results_expiration_days = 7
-access_logs_retention_days     = 365 # 1 year for dev
 
 #------------------------------------------------------------------------------
 # Additional Tags

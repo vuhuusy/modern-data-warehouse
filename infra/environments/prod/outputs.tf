@@ -79,31 +79,16 @@ output "athena_results_location" {
 }
 
 #------------------------------------------------------------------------------
-# Access Logs Bucket Outputs (Production Only)
-#------------------------------------------------------------------------------
-
-output "access_logs_bucket_id" {
-  description = "The name of the access logs bucket"
-  value       = var.enable_access_logging ? module.access_logs_bucket[0].bucket_id : null
-}
-
-output "access_logs_bucket_arn" {
-  description = "The ARN of the access logs bucket"
-  value       = var.enable_access_logging ? module.access_logs_bucket[0].bucket_arn : null
-}
-
-#------------------------------------------------------------------------------
 # Summary Outputs
 #------------------------------------------------------------------------------
 
 output "all_bucket_arns" {
   description = "Map of all bucket ARNs by purpose"
   value = {
-    raw          = module.raw_bucket.bucket_arn
-    curated      = module.curated_bucket.bucket_arn
-    mwaa         = var.enable_mwaa ? module.mwaa_artifacts_bucket[0].bucket_arn : null
-    athena       = module.athena_results_bucket.bucket_arn
-    access_logs  = var.enable_access_logging ? module.access_logs_bucket[0].bucket_arn : null
+    raw     = module.raw_bucket.bucket_arn
+    curated = module.curated_bucket.bucket_arn
+    mwaa    = var.enable_mwaa ? module.mwaa_artifacts_bucket[0].bucket_arn : null
+    athena  = module.athena_results_bucket.bucket_arn
   }
 }
 

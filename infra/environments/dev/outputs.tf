@@ -79,20 +79,6 @@ output "athena_results_bucket_s3_uri" {
 }
 
 #------------------------------------------------------------------------------
-# Access Logs Bucket (Conditional)
-#------------------------------------------------------------------------------
-
-output "access_logs_bucket_name" {
-  description = "Name of the access logs S3 bucket (if enabled)."
-  value       = var.enable_access_logging ? module.access_logs_bucket[0].bucket_name : null
-}
-
-output "access_logs_bucket_arn" {
-  description = "ARN of the access logs S3 bucket (if enabled)."
-  value       = var.enable_access_logging ? module.access_logs_bucket[0].bucket_arn : null
-}
-
-#------------------------------------------------------------------------------
 # Summary Output
 #------------------------------------------------------------------------------
 
@@ -102,8 +88,7 @@ output "all_bucket_arns" {
     module.raw_bucket.bucket_arn,
     module.curated_bucket.bucket_arn,
     var.enable_mwaa ? module.mwaa_artifacts_bucket[0].bucket_arn : "",
-    module.athena_results_bucket.bucket_arn,
-    var.enable_access_logging ? module.access_logs_bucket[0].bucket_arn : ""
+    module.athena_results_bucket.bucket_arn
   ])
 }
 
