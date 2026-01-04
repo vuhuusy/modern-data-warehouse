@@ -17,7 +17,7 @@ variable "project" {
 variable "environments" {
   description = "List of environments to create backend resources for."
   type        = list(string)
-  default     = ["dev", "prod"]
+  default     = ["dev"]
 }
 
 variable "owner" {

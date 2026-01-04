@@ -7,20 +7,18 @@ This directory contains Terraform configurations for provisioning the Modern Dat
 ```
 infra/
 ├── bootstrap/             # Terraform state backend resources
-│   ├── main.tf           # S3 + DynamoDB for state management
+│   ├── main.tf           # S3 for state management
 │   ├── variables.tf      # Bootstrap configuration
 │   ├── outputs.tf        # Backend config snippets
 │   └── versions.tf       # Provider constraints
-├── environments/          # Environment-specific configurations
-│   ├── dev/              # Development environment
-│   │   ├── backend.tf    # Remote state configuration
-│   │   ├── main.tf       # Resource definitions
-│   │   ├── outputs.tf    # Output values
-│   │   ├── terraform.tfvars # Variable values
-│   │   ├── variables.tf  # Variable declarations
-│   │   └── versions.tf   # Provider constraints
-│   └── prod/             # Production environment
-│       └── ...           # Same structure as dev
+├── environments/          # Environment configurations
+│   └── dev/              # Development environment
+│       ├── backend.tf    # Remote state configuration
+│       ├── main.tf       # Resource definitions
+│       ├── outputs.tf    # Output values
+│       ├── terraform.tfvars # Variable values
+│       ├── variables.tf  # Variable declarations
+│       └── versions.tf   # Provider constraints
 ├── modules/              # Reusable Terraform modules
 │   └── s3/              # S3 bucket module with security defaults
 └── README.md            # This file
@@ -43,7 +41,7 @@ All AWS resources follow this naming pattern:
 | Component | Description | Example |
 |-----------|-------------|---------|
 | `project` | Project identifier | `mdw` |
-| `env` | Environment (`dev` or `prod` only) | `dev` |
+| `env` | Environment | `dev` |
 | `region` | AWS region | `us-west-2` |
 | `name` | Descriptive resource name | `data-raw` |
 
@@ -53,7 +51,7 @@ All AWS resources follow this naming pattern:
 
 ### 1. Bootstrap Backend (First Time Only)
 
-Run the bootstrap module to create S3 bucket and DynamoDB table for Terraform state:
+Run the bootstrap module to create S3 bucket for Terraform state:
 
 ```bash
 cd infra/bootstrap
@@ -62,12 +60,9 @@ terraform apply
 ```
 
 This creates:
-- `mdw-dev-us-west-2-tfstate` - S3 bucket for dev state
-- `mdw-prod-us-west-2-tfstate` - S3 bucket for prod state
-- `mdw-dev-us-west-2-tfstate-lock` - DynamoDB table for dev locking
-- `mdw-prod-us-west-2-tfstate-lock` - DynamoDB table for prod locking
+- `mdw-dev-us-west-2-tfstate` - S3 bucket for state
 
-### 2. Deploy Development Environment
+### 2. Deploy Infrastructure
 
 ```bash
 cd environments/dev
@@ -82,42 +77,15 @@ terraform plan
 terraform apply
 ```
 
-### 3. Deploy Production Environment
-
-```bash
-cd environments/prod
-
-# Initialize with production backend
-terraform init
-
-# Review and apply
-terraform plan -out=tfplan
-terraform apply tfplan
-```
-
-## Environments
-
-### Development (`dev`)
+## Environment Configuration
 
 | Feature | Configuration |
 |---------|---------------|
-| Access Logging | Disabled |
 | Encryption | AES-256 (default) |
-| MWAA | Enabled |
-| Raw Data IA Transition | 90 days |
-| Athena Results Retention | 7 days |
-
-### Production (`prod`)
-
-| Feature | Configuration |
-|---------|---------------|
-| Access Logging | Enabled |
-| Encryption | AWS KMS |
 | MWAA | Enabled |
 | Raw Data IA Transition | 90 days |
 | Raw Data Glacier | 365 days |
 | Athena Results Retention | 7 days |
-| Access Logs Retention | 2555 days (7 years) |
 
 ## Modules
 
@@ -130,7 +98,6 @@ Enterprise-grade S3 bucket module with security defaults:
 - ✅ TLS 1.2+ enforced
 - ✅ Versioning enabled by default
 - ✅ Configurable lifecycle rules
-- ✅ Optional access logging
 
 **Usage:**
 
@@ -163,12 +130,11 @@ See [modules/s3/README.md](modules/s3/README.md) for full documentation.
 ### Encryption
 
 - Default: AES-256 server-side encryption
-- Production: Consider KMS for additional key management
 
 ### State Security
 
 - Remote state stored in encrypted S3 bucket
-- State locking via DynamoDB prevents concurrent modifications
+- State locking via S3 native locking
 - Never commit `.terraform/` or `*.tfstate` files
 
 ## Outputs

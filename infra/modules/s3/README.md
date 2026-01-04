@@ -9,7 +9,6 @@ Enterprise-grade Terraform module for creating secure AWS S3 buckets with best p
 - ✅ **Mandatory Tagging**: Enforces project, environment, region, owner tags
 - ✅ **TLS Enforcement**: Denies non-HTTPS requests and requires TLS 1.2+
 - ✅ **Flexible Configuration**: Optional lifecycle rules, CORS
-- ✅ **Multi-Environment**: Supports dev and prod environments
 - ✅ **Encryption Options**: AES-256 (default) or AWS KMS
 
 ## Usage
@@ -28,7 +27,7 @@ module "data_lake" {
 }
 ```
 
-### Production Data Lake with KMS Encryption
+### Data Lake with KMS Encryption
 
 ```hcl
 module "data_lake_prod" {
@@ -36,7 +35,7 @@ module "data_lake_prod" {
 
   bucket_name = "data-lake"
   project     = "mdw"
-  environment = "prod"
+  environment = "dev"
   region      = "us-west-2"
   owner       = "data-engineering"
 
@@ -106,8 +105,8 @@ data "aws_iam_policy_document" "cross_account_access" {
     ]
 
     resources = [
-      "arn:aws:s3:::mdw-prod-us-west-2-shared-data",
-      "arn:aws:s3:::mdw-prod-us-west-2-shared-data/*"
+      "arn:aws:s3:::mdw-dev-us-west-2-shared-data",
+      "arn:aws:s3:::mdw-dev-us-west-2-shared-data/*"
     ]
   }
 }
@@ -117,7 +116,7 @@ module "shared_data" {
 
   bucket_name = "shared-data"
   project     = "mdw"
-  environment = "prod"
+  environment = "dev"
   region      = "us-west-2"
   owner       = "data-engineering"
 
@@ -139,7 +138,7 @@ module "shared_data" {
 |------|-------------|------|---------|:--------:|
 | bucket_name | The name of the S3 bucket | `string` | n/a | yes |
 | project | Project identifier | `string` | n/a | yes |
-| environment | Deployment environment (dev/prod) | `string` | n/a | yes |
+| environment | Deployment environment | `string` | n/a | yes |
 | region | AWS region code (e.g., us-west-2) | `string` | n/a | yes |
 | owner | Owner for tagging | `string` | n/a | yes |
 | use_prefix | Prefix bucket name with project, env, region | `bool` | `true` | no |
@@ -238,7 +237,7 @@ All buckets receive these mandatory tags:
 | Tag | Description |
 |-----|-------------|
 | project | Project identifier |
-| env | Environment (dev/stg/prod) |
+| env | Environment |
 | owner | Resource owner |
 | cost_center | Billing cost center |
 | managed_by | Managing team |

@@ -24,11 +24,7 @@ variable "project" {
 variable "environment" {
   description = "Deployment environment identifier."
   type        = string
-
-  validation {
-    condition     = contains(["dev", "prod"], var.environment)
-    error_message = "Environment must be 'dev' or 'prod'."
-  }
+  default     = "dev"
 }
 
 variable "region" {

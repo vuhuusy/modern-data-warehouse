@@ -10,7 +10,6 @@ Enterprise-grade Terraform module for provisioning Amazon MWAA environments with
 - ✅ **Auto-scaling**: Configurable worker and webserver scaling
 - ✅ **CloudWatch Logging**: All Airflow components logged
 - ✅ **Flexible Configuration**: Custom Airflow config options support
-- ✅ **Multi-Environment**: Supports dev and prod environments
 
 ## Architecture
 
@@ -65,14 +64,14 @@ module "mwaa" {
 }
 ```
 
-### Production Configuration
+### Full Configuration
 
 ```hcl
 module "mwaa" {
   source = "../../modules/mwaa"
 
   project     = "mdw"
-  environment = "prod"
+  environment = "dev"
   region      = "us-west-2"
   owner       = "data-engineering"
 
@@ -141,7 +140,7 @@ module "mwaa" {
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | project | Project identifier | `string` | n/a | yes |
-| environment | Deployment environment (dev/prod) | `string` | n/a | yes |
+| environment | Deployment environment | `string` | n/a | yes |
 | region | AWS region code | `string` | n/a | yes |
 | source_bucket_arn | ARN of S3 bucket containing DAGs | `string` | n/a | yes |
 | vpc_id | VPC ID for MWAA deployment | `string` | n/a | yes |
