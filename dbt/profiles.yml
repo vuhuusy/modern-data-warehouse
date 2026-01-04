@@ -10,13 +10,3 @@ mdw:
       database: awsdatacatalog
       schema: mdw
       threads: 2
-
-    prod:
-      type: athena
-      region_name: us-west-2
-      s3_staging_dir: s3://mdw-prod-us-west-2-work-zone/athena/query/result/
-      s3_data_dir: s3://mdw-prod-us-west-2-data-lake/grocery-sales/
-      work_group: mdw-prod
-      database: awsdatacatalog
-      schema: mdw
-      threads: 4
