@@ -42,7 +42,7 @@ resource "aws_s3_bucket" "tfstate" {
   }
 
   lifecycle {
-    prevent_destroy = false
+    prevent_destroy = false # false for development purposes; set to true in production
   }
 }
 
