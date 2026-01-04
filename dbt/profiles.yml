@@ -4,8 +4,8 @@ mdw:
     dev:
       type: athena
       region_name: us-west-2
-      s3_staging_dir: s3://mdw-dev-work-zone/athena/query/result/
-      s3_data_dir: s3://mdw-dev-data-lake/grocery-sales/
+      s3_staging_dir: s3://mdw-dev-us-west-2-work-zone/athena/query/result/
+      s3_data_dir: s3://mdw-dev-us-west-2-data-lake/grocery-sales/
       work_group: mdw-dev
       database: awsdatacatalog
       schema: mdw
@@ -14,8 +14,8 @@ mdw:
     prod:
       type: athena
       region_name: us-west-2
-      s3_staging_dir: s3://mdw-prod-work-zone/athena/query/result/
-      s3_data_dir: s3://mdw-prod-data-lake/grocery-sales/
+      s3_staging_dir: s3://mdw-prod-us-west-2-work-zone/athena/query/result/
+      s3_data_dir: s3://mdw-prod-us-west-2-data-lake/grocery-sales/
       work_group: mdw-prod
       database: awsdatacatalog
       schema: mdw
